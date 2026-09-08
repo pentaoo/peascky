@@ -22,6 +22,13 @@ Open [http://localhost:4173](http://localhost:4173).
 The standalone sampler draft is available at
 [http://localhost:4173/sampler.html](http://localhost:4173/sampler.html).
 
+## GitHub Pages
+
+The latest `main` branch is deployed to
+[https://pentaoo.github.io/peascky/](https://pentaoo.github.io/peascky/).
+On screens narrower than 768px, the entry page opens the Pocket Jam sampler.
+Add `?desktop=1` to the URL to keep the full experience open on mobile.
+
 ## Architecture
 
 The project uses native HTML, CSS, JavaScript, Web Audio, Canvas, and browser storage.

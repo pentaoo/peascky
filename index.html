@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#161613">
     <title>Pocket Jam — start making noise</title>
+    <script>
+      (() => {
+        const params = new URLSearchParams(window.location.search);
+        const prefersMobile = window.matchMedia("(max-width: 767px)").matches;
+
+        if (prefersMobile && !params.has("desktop")) {
+          window.location.replace("./sampler.html");
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="./styles.css?v=7">
   </head>
   <body>
