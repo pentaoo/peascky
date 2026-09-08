@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#11120f">
+    <title>Pocket Jam — Sampler Draft</title>
+    <link rel="stylesheet" href="./sampler.css?v=1">
+  </head>
+  <body>
+    <main class="sampler-page">
+      <header class="draft-header">
+        <a class="back-link" href="./index.html">← Pocket Jam</a>
+        <span>Sampler study · Figma 6:521 / 6:573</span>
+      </header>
+
+      <section class="device-shell" aria-label="Pocket Jam sampler prototype">
+        <header class="device-display">
+          <div class="display-topline">
+            <span class="status-led" aria-hidden="true"></span>
+            <span data-status>Ready to jam</span>
+            <span data-bank-label>Bank A</span>
+          </div>
+          <div class="display-main">
+            <strong data-sample-name>Pocket Jam</strong>
+            <span class="level-meter" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </span>
+          </div>
+        </header>
+
+        <section class="control-deck" aria-label="Sampler controls">
+          <div class="sample-grid" data-sample-grid>
+            <button class="sample-pad pad-coral" type="button" data-sound="kick" data-label="Kick 01" aria-label="Play kick sample"><span>01</span><i></i></button>
+            <button class="sample-pad pad-rose" type="button" data-sound="snare" data-label="Snare 02" aria-label="Play snare sample"><span>02</span><i></i></button>
+            <button class="sample-pad pad-ice" type="button" data-sound="hat" data-label="Closed hat" aria-label="Play closed hat sample"><span>03</span><i></i></button>
+            <button class="sample-pad pad-violet" type="button" data-sound="bass" data-label="Sub bass" aria-label="Play bass sample"><span>04</span><i></i></button>
+            <button class="sample-pad pad-amber" type="button" data-sound="tom" data-label="Low tom" aria-label="Play low tom sample"><span>05</span><i></i></button>
+            <button class="sample-pad pad-mint" type="button" data-sound="clap" data-label="Soft clap" aria-label="Play clap sample"><span>06</span><i></i></button>
+            <button class="sample-pad pad-blue" type="button" data-sound="perc" data-label="Glass perc" aria-label="Play percussion sample"><span>07</span><i></i></button>
+            <button class="sample-pad pad-acid" type="button" data-sound="chord" data-label="Minor chord" aria-label="Play chord sample"><span>08</span><i></i></button>
+          </div>
+
+          <div class="mode-pair">
+            <button class="mode-key is-active" type="button" data-mode="one-shot" aria-pressed="true"><span>One</span><small>shot</small></button>
+            <button class="mode-key" type="button" data-mode="loop" aria-pressed="false"><span>Loop</span><small>hold</small></button>
+          </div>
+
+          <label class="vertical-fader" data-fader="volume">
+            <span>Vol</span>
+            <input type="range" min="0" max="100" value="78" aria-label="Sampler volume">
+            <i aria-hidden="true"></i>
+            <output>78</output>
+          </label>
+          <label class="vertical-fader" data-fader="tone">
+            <span>Tone</span>
+            <input type="range" min="0" max="100" value="62" aria-label="Sampler tone">
+            <i aria-hidden="true"></i>
+            <output>62</output>
+          </label>
+
+          <button class="capture-key" type="button" data-capture>
+            <span class="capture-dot" aria-hidden="true"></span>
+            <span><b>Capture</b><small>hold to record</small></span>
+          </button>
+
+          <div class="xy-pad" data-xy-pad role="slider" tabindex="0" aria-label="Effect position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+            <div class="xy-grid" aria-hidden="true"></div>
+            <i class="xy-cursor" aria-hidden="true"></i>
+            <span>Space</span><small>filter · echo</small>
+          </div>
+
+          <div class="bank-popover" data-bank-popover hidden aria-label="Sample bank">
+            <div class="bank-grid">
+              <button type="button" data-bank="A">A</button>
+              <button type="button" data-bank="B">B</button>
+              <button type="button" data-bank="C">C</button>
+              <button type="button" data-bank="D">D</button>
+              <button type="button" data-bank="E">E</button>
+              <button type="button" data-bank="F">F</button>
+              <button type="button" data-bank="G">G</button>
+              <button type="button" data-bank="H">H</button>
+              <button type="button" data-bank="I">I</button>
+            </div>
+          </div>
+        </section>
+
+        <nav class="device-nav" aria-label="Sampler views">
+          <button class="nav-key is-active" type="button" data-nav="grid" aria-label="Performance grid" aria-pressed="true"><img src="./assets/figma/nav-grid.svg" alt=""></button>
+          <button class="nav-key" type="button" data-nav="bank" aria-label="Sample banks" aria-pressed="false"><img src="./assets/figma/nav-sliders.svg" alt=""></button>
+          <button class="nav-key" type="button" data-nav="random" aria-label="Randomize bank" aria-pressed="false"><img src="./assets/figma/nav-dice.svg" alt=""></button>
+        </nav>
+      </section>
+
+      <aside class="draft-note">
+        <p><b>Draft direction</b> Figma proportions, Pocket Jam materials.</p>
+        <p>Tap pads or keys <kbd>1</kbd>–<kbd>8</kbd>. Open the middle navigation button to see the second Figma state.</p>
+      </aside>
+    </main>
+    <script type="module" src="./src/sampler.js?v=2"></script>
+  </body>
+</html>

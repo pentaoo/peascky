@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#161613">
+    <title>Pocket Jam — start making noise</title>
+    <link rel="stylesheet" href="./styles.css?v=7">
+  </head>
+  <body>
+    <main class="app" data-app data-view="home">
+      <header class="app-header">
+        <button class="wordmark" type="button" data-home aria-label="Go home">
+          <span class="logo-orb"><i></i></span>
+          <span>Pocket Jam</span>
+        </button>
+        <div class="header-actions">
+          <span class="save-state" data-save-state>Local first</span>
+          <a class="text-button header-link" href="./sampler.html">Sampler draft</a>
+          <button class="text-button" type="button" data-export>Export WAV</button>
+        </div>
+      </header>
+
+      <section class="screen home-screen" data-screen="home">
+        <div class="home-intro">
+          <p class="eyebrow">An instrument, not a workstation</p>
+          <h1>Make a sound.<br><em>Keep the accident.</em></h1>
+          <p>Start with something alive. Shape it after it starts moving.</p>
+        </div>
+
+        <div class="entry-grid">
+          <button class="entry-card entry-card--video" type="button" data-entry="video">
+            <span class="entry-index">01</span>
+            <span class="entry-visual video-visual" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="entry-copy"><b>Video Remix</b><small>Turn motion and cuts into a playable beat.</small></span>
+            <span class="entry-cta">Choose video <i>↗</i></span>
+          </button>
+          <button class="entry-card entry-card--loop" type="button" data-entry="loop">
+            <span class="entry-index">02</span>
+            <span class="entry-visual loop-visual" aria-hidden="true"><i></i><i></i></span>
+            <span class="entry-copy"><b>Quick Loop</b><small>Record anything. Get a clean loop back.</small></span>
+            <span class="entry-cta">Coming next</span>
+          </button>
+          <button class="entry-card entry-card--build" type="button" data-entry="build">
+            <span class="entry-index">03</span>
+            <span class="entry-visual build-visual" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <span class="entry-copy"><b>Build Track</b><small>Start playing from a living preset.</small></span>
+            <span class="entry-cta">Start now <i>↗</i></span>
+          </button>
+        </div>
+        <p class="home-footnote">No account · no cloud · audio stays here</p>
+      </section>
+
+      <section class="screen video-screen" data-screen="video" hidden>
+        <div class="video-heading">
+          <div>
+            <p class="eyebrow">Video Remix · local analysis</p>
+            <h2>Let the picture<br><em>set the rhythm.</em></h2>
+          </div>
+          <p>Your video never leaves this device. Motion, cuts, color and available audio become a reproducible 16-step pattern.</p>
+        </div>
+
+        <div class="video-workspace">
+          <label class="video-drop" data-video-drop>
+            <input type="file" accept="video/*" data-video-input>
+            <span class="drop-orb" aria-hidden="true"><i>+</i></span>
+            <span><b>Drop a video here</b><small>or choose MP4, WebM, MOV</small></span>
+            <em>Processed locally</em>
+          </label>
+
+          <div class="video-analysis" data-video-analysis hidden>
+            <div class="video-preview">
+              <video data-video-preview muted playsinline controls></video>
+              <span class="preview-scan" aria-hidden="true"></span>
+            </div>
+            <div class="analysis-console">
+              <div class="analysis-status">
+                <span data-analysis-label>Opening video</span>
+                <b data-analysis-percent>0%</b>
+              </div>
+              <div class="analysis-progress"><i data-analysis-progress></i></div>
+              <div class="analysis-steps">
+                <span data-analysis-step="motion">Motion field</span>
+                <span data-analysis-step="cuts">Scene changes</span>
+                <span data-analysis-step="audio">Audio transients</span>
+                <span data-analysis-step="pattern">Pattern mapping</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="remix-result" data-remix-result hidden>
+            <div class="result-color" data-result-color aria-hidden="true"><i></i></div>
+            <div>
+              <p class="eyebrow">Playable result</p>
+              <h3 data-result-name>Video remix</h3>
+              <p data-result-summary></p>
+            </div>
+            <div class="result-actions">
+              <button type="button" data-new-video>Try another</button>
+              <button class="result-open" type="button" data-open-remix>Open remix <i>↗</i></button>
+            </div>
+          </div>
+        </div>
+        <button class="back-link" type="button" data-back-home>← Three ways to start</button>
+      </section>
+
+      <section class="screen preset-screen" data-screen="presets" hidden>
+        <div class="preset-heading">
+          <div>
+            <p class="eyebrow">Build Track</p>
+            <h2>Choose a pulse.</h2>
+          </div>
+          <p>Nothing starts empty. Pick a direction and alter it while it plays.</p>
+        </div>
+        <div class="preset-grid" data-preset-grid></div>
+        <button class="back-link" type="button" data-back-home>← Three ways to start</button>
+      </section>
+
+      <section class="screen build-screen" data-screen="build" hidden>
+        <div class="transport">
+          <button class="play-button" type="button" data-play aria-label="Play track"><i></i></button>
+          <div class="project-meta">
+            <input data-project-name aria-label="Project name" value="Untitled sketch">
+            <span><b data-position>01 / 01</b> · 16 steps</span>
+          </div>
+          <label class="bpm-control"><span>BPM</span><input type="number" min="60" max="180" value="112" data-bpm></label>
+          <button class="save-button" type="button" data-save>Save</button>
+        </div>
+
+        <section class="cloud-stage" aria-label="Cloud Piska live pads">
+          <div class="cloud-copy">
+            <p class="eyebrow">Cloud Piska · connected</p>
+            <h2>Touch the air.</h2>
+          </div>
+          <div class="cloud-field" data-cloud-field></div>
+          <div class="cloud-glow" data-cloud-glow aria-hidden="true"></div>
+          <div class="particles" data-particles aria-hidden="true"></div>
+          <button class="cloud-pad cloud-pad--kick" style="--x:18%;--y:60%;--c:#ff9c61" data-live-pad="kick"><i></i><b>Kick</b><small>A</small></button>
+          <button class="cloud-pad cloud-pad--snare" style="--x:43%;--y:35%;--c:#ff69b4" data-live-pad="snare"><i></i><b>Snare</b><small>S</small></button>
+          <button class="cloud-pad cloud-pad--hat" style="--x:68%;--y:58%;--c:#d8fbff" data-live-pad="hat"><i></i><b>Hat</b><small>D</small></button>
+          <button class="cloud-pad cloud-pad--bass" style="--x:84%;--y:28%;--c:#8c79ff" data-live-pad="bass"><i></i><b>Bass</b><small>F</small></button>
+          <span class="cloud-instruction">Tap pads or use A · S · D · F</span>
+        </section>
+
+        <section class="sequencer" aria-label="16 step sequencer">
+          <div class="sequencer-heading">
+            <div><p class="eyebrow">Pattern</p><h3>Live sequence</h3></div>
+            <div class="pattern-tabs" data-pattern-tabs></div>
+          </div>
+          <div class="step-grid" data-step-grid></div>
+        </section>
+      </section>
+
+      <div class="toast" data-toast role="status" aria-live="polite"></div>
+    </main>
+    <script type="module" src="./src/app.js?v=10"></script>
+  </body>
+</html>
