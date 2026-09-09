@@ -1,0 +1,14 @@
+{
+  "id": "cloud-lab-starter",
+  "name": "Cloud Lab",
+  "columns": 4,
+  "rows": 4,
+  "slots": [
+    { "id": "kick-slot", "instrumentId": "cloud-kick", "column": 0, "row": 0, "layoutSize": "1x1", "yaw": -0.07, "elevation": 0 },
+    { "id": "snare-slot", "instrumentId": "cloud-snare", "column": 1, "row": 0, "layoutSize": "1x1", "yaw": 0.05, "elevation": 0.03 },
+    { "id": "hat-slot", "instrumentId": "cloud-hat", "column": 2, "row": 0, "layoutSize": "1x1", "yaw": -0.04, "elevation": 0.06 },
+    { "id": "bass-slot", "instrumentId": "cloud-bass", "column": 0, "row": 1, "layoutSize": "1x2", "yaw": 0.04, "elevation": 0 },
+    { "id": "synth-slot", "instrumentId": "orbit-synth", "column": 1, "row": 1, "layoutSize": "2x1", "yaw": -0.025, "elevation": 0.02 },
+    { "id": "reverb-slot", "instrumentId": "cloud-reverb", "column": 1, "row": 2, "layoutSize": "2x2", "yaw": 0.035, "elevation": 0.04 }
+  ]
+}

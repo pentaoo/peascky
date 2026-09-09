@@ -1,9 +1,8 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { chromium } = require("/Users/penta/.nvm/versions/node/v22.22.0/lib/node_modules/openclaw/node_modules/playwright-core");
+const { launchChromium } = require("./browser-launch.cjs");
 
-const chromePath = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-const baseUrl = process.env.POCKET_JAM_URL || "http://127.0.0.1:4173/cloud-lab.html";
+const baseUrl = process.env.POCKET_JAM_URL || `${process.env.POCKET_JAM_ORIGIN || "http://127.0.0.1:4173"}/cloud-lab.html`;
 const outputDirectory = process.env.POCKET_JAM_AUDIT_DIR || "/tmp/pocket-jam-cloud-lab-audit";
 const viewportMatrix = [
   { name: "320x568", width: 320, height: 568 },
@@ -25,7 +24,7 @@ let browser;
 
 (async () => {
   fs.mkdirSync(outputDirectory, { recursive: true });
-  browser = await chromium.launch({ headless: true, executablePath: chromePath });
+  browser = await launchChromium();
   const report = [];
 
   for (const viewport of viewports) {

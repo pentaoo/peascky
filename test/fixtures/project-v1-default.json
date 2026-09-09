@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "id": "<generated>",
+  "name": "Minimal sketch",
+  "source": "manual",
+  "presetId": "minimal",
+  "bpm": 112,
+  "steps": 16,
+  "swing": 0.08,
+  "updatedAt": "<generated>",
+  "tracks": [
+    {
+      "id": "kick",
+      "name": "Kick",
+      "color": "#ff9c61",
+      "key": "A",
+      "volume": 0.78,
+      "mute": false,
+      "pattern": [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0]
+    },
+    {
+      "id": "snare",
+      "name": "Snare",
+      "color": "#ff69b4",
+      "key": "S",
+      "volume": 0.78,
+      "mute": false,
+      "pattern": [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
+    },
+    {
+      "id": "hat",
+      "name": "Hat",
+      "color": "#d8fbff",
+      "key": "D",
+      "volume": 0.78,
+      "mute": false,
+      "pattern": [0.55, 0, 0.42, 0, 0.55, 0, 0.42, 0, 0.55, 0, 0.42, 0, 0.55, 0, 0.42, 0]
+    },
+    {
+      "id": "bass",
+      "name": "Bass",
+      "color": "#8c79ff",
+      "key": "F",
+      "volume": 0.78,
+      "mute": false,
+      "pattern": [1, 0, 0, 0, 0, 0, 0.65, 0, 0, 0, 0, 0, 0.72, 0, 0, 0]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+[
+  { "number": "01", "sound": "kick", "label": "Kick 01" },
+  { "number": "02", "sound": "snare", "label": "Snare 02" },
+  { "number": "03", "sound": "hat", "label": "Closed hat" },
+  { "number": "04", "sound": "bass", "label": "Sub bass" },
+  { "number": "05", "sound": "tom", "label": "Low tom" },
+  { "number": "06", "sound": "clap", "label": "Soft clap" },
+  { "number": "07", "sound": "perc", "label": "Glass perc" },
+  { "number": "08", "sound": "chord", "label": "Minor chord" }
+]

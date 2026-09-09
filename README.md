@@ -28,6 +28,19 @@ The object-first Cloud Lab experiment is available at
 Its current scope and extension points are documented in
 [`docs/CLOUD_LAB_MVP.md`](docs/CLOUD_LAB_MVP.md).
 
+## Browser baseline
+
+Before or after migration work, reproduce the preserved browser behavior with:
+
+```bash
+npm ci
+npx playwright install chromium
+npm run test:baseline
+```
+
+See [`docs/BASELINE.md`](docs/BASELINE.md) for the exact Project v1, scheduler,
+Cloud Lab, sampler, offline export, and legacy Video Remix contracts.
+
 ## GitHub Pages
 
 The latest `main` branch is deployed to

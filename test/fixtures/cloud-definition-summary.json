@@ -1,0 +1,42 @@
+[
+  {
+    "id": "cloud-kick", "name": "Cloud Kick", "world": "cloud", "category": "drums", "layoutSize": "1x1", "interactionType": "hit", "interactionModes": ["hit"],
+    "sound": { "type": "instrument", "engine": "procedural", "voice": "cloud-kick", "polyphony": 4, "outputGain": 0.86, "sample": { "uri": null, "chokeGroup": null } },
+    "parameters": [{ "id": "tone", "default": 0.48 }, { "id": "decay", "default": 0.36 }, { "id": "punch", "default": 0.72 }]
+  },
+  {
+    "id": "cloud-snare", "name": "Cloud Snare", "world": "cloud", "category": "drums", "layoutSize": "1x1", "interactionType": "hit", "interactionModes": ["hit"],
+    "sound": { "type": "instrument", "engine": "procedural", "voice": "cloud-snare", "polyphony": 5, "outputGain": 0.64, "sample": { "uri": null, "chokeGroup": null } },
+    "parameters": [{ "id": "snap", "default": 0.66 }, { "id": "body", "default": 184 }, { "id": "air", "default": 0.42 }]
+  },
+  {
+    "id": "cloud-hat", "name": "Cloud Hat", "world": "cloud", "category": "drums", "layoutSize": "1x1", "interactionType": "hit", "interactionModes": ["hit", "hold"],
+    "sound": { "type": "instrument", "engine": "procedural", "voice": "cloud-hat", "polyphony": 6, "outputGain": 0.38, "sample": { "uri": null, "chokeGroup": "cloud-hats" } },
+    "parameters": [{ "id": "open", "default": 0.08 }, { "id": "brightness", "default": 0.7 }]
+  },
+  {
+    "id": "cloud-bass", "name": "Cloud Bass", "world": "cloud", "category": "bass", "layoutSize": "1x2", "interactionType": "slider", "interactionModes": ["slider", "hold", "notes"],
+    "sound": { "type": "instrument", "engine": "procedural", "voice": "cloud-bass", "polyphony": 1, "outputGain": 0.58, "sample": { "uri": null, "chokeGroup": null } },
+    "parameters": [{ "id": "note", "default": 43 }, { "id": "cutoff", "default": 420 }, { "id": "pressure", "default": 0.64 }]
+  },
+  {
+    "id": "cloud-keys", "name": "Cloud Keys", "world": "cloud", "category": "melodic", "layoutSize": "2x1", "interactionType": "notes", "interactionModes": ["notes", "slider"],
+    "sound": { "type": "instrument", "engine": "procedural", "voice": "cloud-keys", "polyphony": 6, "outputGain": 0.46, "sample": { "uri": null, "chokeGroup": null } },
+    "parameters": [{ "id": "note", "default": 60 }, { "id": "glide", "default": 0.08 }, { "id": "brightness", "default": 0.54 }]
+  },
+  {
+    "id": "cloud-reverb", "name": "Cloud Reverb", "world": "cloud", "category": "effect", "layoutSize": "2x2", "interactionType": "xy", "interactionModes": ["xy", "hold"],
+    "sound": { "type": "effect", "engine": "procedural", "voice": "cloud-reverb", "polyphony": 0, "outputGain": 1, "routing": { "input": "field", "placement": "send", "returnGain": 0.34 } },
+    "parameters": [{ "id": "size", "default": 0.72 }, { "id": "damping", "default": 0.55 }, { "id": "mix", "default": 0.3 }]
+  },
+  {
+    "id": "orbit-synth", "name": "Orbit Synth", "world": "orbit", "category": "melodic", "layoutSize": "2x1", "interactionType": "notes", "interactionModes": ["notes", "knob"],
+    "sound": { "type": "instrument", "engine": "procedural", "voice": "orbit-synth", "polyphony": 4, "outputGain": 0.44, "sample": { "uri": null, "chokeGroup": null } },
+    "parameters": [{ "id": "note", "default": 62 }, { "id": "modulation", "default": 2.4 }, { "id": "spread", "default": 0.38 }]
+  },
+  {
+    "id": "cyber-bass", "name": "Cyber Bass", "world": "cyber", "category": "bass", "layoutSize": "1x2", "interactionType": "slider", "interactionModes": ["slider", "hold"],
+    "sound": { "type": "instrument", "engine": "procedural", "voice": "cyber-bass", "polyphony": 1, "outputGain": 0.55, "sample": { "uri": null, "chokeGroup": null } },
+    "parameters": [{ "id": "note", "default": 38 }, { "id": "cutoff", "default": 520 }, { "id": "drive", "default": 0.26 }]
+  }
+]

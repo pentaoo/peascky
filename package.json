@@ -1,0 +1,20 @@
+{
+  "name": "pocket-jam-browser-baseline",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Development-only characterization harness for the Pocket Jam browser prototypes.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test:characterization": "node --test test/*.test.js",
+    "test:browser": "node scripts/run-browser-checks.cjs scripts/browser-baseline-smoke.cjs",
+    "test:cloud": "node scripts/run-browser-checks.cjs scripts/cloud-lab-smoke.cjs",
+    "test:audio": "node scripts/run-browser-checks.cjs scripts/cloud-lab-audio-smoke.cjs",
+    "test:baseline": "node scripts/run-baseline.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
