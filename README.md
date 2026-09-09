@@ -9,6 +9,7 @@ Pocket Jam is a local-first browser instrument for quickly turning ideas and vid
 - Four-track, 16-step sequencer with live editing.
 - Cloud Piska audiovisual performance surface.
 - Figma-derived tactile sampler draft with eight playable pads.
+- Cloud Lab spatial-instrument vertical slice with procedural musical objects.
 - Local project persistence and WAV export.
 
 ## Run locally
@@ -21,6 +22,11 @@ Open [http://localhost:4173](http://localhost:4173).
 
 The standalone sampler draft is available at
 [http://localhost:4173/sampler.html](http://localhost:4173/sampler.html).
+
+The object-first Cloud Lab experiment is available at
+[http://localhost:4173/cloud-lab.html](http://localhost:4173/cloud-lab.html).
+Its current scope and extension points are documented in
+[`docs/CLOUD_LAB_MVP.md`](docs/CLOUD_LAB_MVP.md).
 
 ## GitHub Pages
 

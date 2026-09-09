@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#d8ebed">
+    <meta name="description" content="Pocket Jam Cloud Lab — a tactile field of collectible musical objects.">
+    <title>Pocket Jam — Cloud Lab</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%238b78c8'/%3E%3Ccircle cx='12' cy='12' r='5' fill='%23f6ffff'/%3E%3Ccircle cx='20' cy='17' r='7' fill='%23bdeef2'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="./cloud-lab.css?v=1">
+  </head>
+  <body>
+    <main class="cloud-lab" data-cloud-lab data-mode="play" data-audio="locked">
+      <header class="lab-header">
+        <a class="round-control round-control--home" href="./index.html?desktop=1" aria-label="Back to Pocket Jam home">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6.5-5.5 5.5 5.5 5.5"/></svg>
+        </a>
+        <div class="set-identity">
+          <span><i aria-hidden="true"></i> Pocket Jam</span>
+          <strong>Cloud Lab <b>01</b></strong>
+        </div>
+        <button class="round-control" type="button" data-edit-toggle aria-label="Edit instrument field" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
+        </button>
+      </header>
+
+      <section class="lab-stage" data-stage aria-label="Cloud Lab musical object field">
+        <div class="sky-light sky-light--one" aria-hidden="true"></div>
+        <div class="sky-light sky-light--two" aria-hidden="true"></div>
+        <div class="stage-heading" aria-hidden="true">
+          <span>Cloud collection</span>
+          <strong>Touch the<br><em>weather.</em></strong>
+        </div>
+
+        <div class="scene" data-scene>
+          <div class="floor-shadow" aria-hidden="true"></div>
+          <div class="field-plane" aria-hidden="true">
+            <i></i><i></i><i></i>
+          </div>
+          <div class="object-layer" data-object-layer></div>
+          <div class="field-glow" data-field-glow aria-hidden="true"></div>
+        </div>
+
+        <div class="play-hint" data-play-hint>
+          <span class="hint-hand" aria-hidden="true">↗</span>
+          <span><b>Objects are controls</b><small>tap · hold · drag</small></span>
+        </div>
+
+        <div class="mode-banner" data-mode-banner role="status" aria-live="polite">
+          <span>Arrange mode</span>
+          <small>Choose an object to swap it</small>
+        </div>
+      </section>
+
+      <footer class="lab-dock" aria-label="Cloud Lab controls">
+        <button class="dock-control" type="button" data-demo aria-pressed="false">
+          <span class="transport-icon" aria-hidden="true"><i></i></span>
+          <span><b>Drift loop</b><small>play a tiny pattern</small></span>
+        </button>
+        <div class="dock-level" aria-hidden="true" data-meter>
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <button class="dock-control dock-control--tilt" type="button" data-tilt aria-pressed="false">
+          <span class="tilt-icon" aria-hidden="true"><i></i></span>
+          <span><b>Tilt view</b><small data-tilt-label>move to peek</small></span>
+        </button>
+      </footer>
+
+      <dialog class="object-drawer" data-picker aria-labelledby="picker-title">
+        <div class="drawer-handle" aria-hidden="true"></div>
+        <header class="drawer-header">
+          <div>
+            <span>Object library</span>
+            <h2 id="picker-title">Choose a new toy</h2>
+          </div>
+          <button type="button" data-picker-close aria-label="Close object library">×</button>
+        </header>
+        <div class="picker-grid" data-picker-grid></div>
+        <footer class="drawer-footer">
+          <p class="drawer-note"><i aria-hidden="true"></i> Sounds live inside objects. Packs are deterministic—never loot boxes.</p>
+          <button type="button" data-reset-layout>Reset starter set</button>
+        </footer>
+      </dialog>
+
+      <div class="lab-toast" data-toast role="status" aria-live="polite"></div>
+    </main>
+    <script type="module" src="./src/cloud-lab.js?v=1"></script>
+  </body>
+</html>

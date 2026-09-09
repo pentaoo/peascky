@@ -8,6 +8,15 @@
 - `src/event-bus.js` is the boundary between musical events and Cloud Piska reactions.
 - `src/video-remix.js` owns local frame/audio analysis and deterministic rule-based pattern generation.
 
+The isolated Cloud Lab prototype keeps its own small runtime boundary:
+
+- `src/cloud-lab-instruments.js` declares object identity, Bento footprint, materials, sound, motion, and procedural/GLB render descriptors.
+- `src/cloud-lab-renderer.js` translates render descriptors into replaceable procedural object views.
+- `src/cloud-lab-audio.js` owns low-latency polyphonic voices and shared spatial effects.
+- `src/cloud-lab.js` coordinates gestures, edit mode, persistence, demo playback, haptics, and sensor/pointer parallax.
+
+See [`CLOUD_LAB_MVP.md`](CLOUD_LAB_MVP.md) for the current vertical-slice contract.
+
 ## Timing model
 
 The transport schedules Web Audio events 100 ms ahead while polling every 25 ms.
