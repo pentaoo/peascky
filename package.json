@@ -5,26 +5,41 @@
   "description": "Pocket Jam browser baseline and portable workspace.",
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13.0"
+  },
+  "overrides": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native-gesture-handler": "2.32.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-worklets": "0.10.1"
   },
   "scripts": {
     "test": "npm run test:packages && npm run test:boundaries",
-    "test:packages": "npm run test --workspaces --if-present",
+    "test:packages": "npm run test --workspace @pocket-jam/shared --workspace @pocket-jam/core --workspace @pocket-jam/protocol --workspace @pocket-jam/instrument-definitions",
     "test:boundaries": "node scripts/check-portable-boundaries.cjs",
     "test:n02": "npm run typecheck && npm test",
+    "test:n04": "npm run test:n02 && npm run test --workspace @pocket-jam/mobile",
+    "test:mobile:bundle": "npm run test:bundle --workspace @pocket-jam/mobile",
     "test:characterization": "node --test test/*.test.js",
     "test:browser": "node scripts/run-browser-checks.cjs scripts/browser-baseline-smoke.cjs",
     "test:cloud": "node scripts/run-browser-checks.cjs scripts/cloud-lab-smoke.cjs",
     "test:audio": "node scripts/run-browser-checks.cjs scripts/cloud-lab-audio-smoke.cjs",
     "test:baseline": "node scripts/run-baseline.cjs",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspace @pocket-jam/shared --workspace @pocket-jam/core --workspace @pocket-jam/protocol --workspace @pocket-jam/instrument-definitions"
   },
   "devDependencies": {
-    "@types/node": "20.19.11",
+    "@types/node": "22.20.2",
     "playwright": "1.63.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native-gesture-handler": "2.32.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-worklets": "0.10.1",
     "tsx": "4.20.5",
     "typescript": "5.9.2"
   }

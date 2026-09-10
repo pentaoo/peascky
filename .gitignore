@@ -4,3 +4,6 @@ node_modules/
 .env.*
 *.log
 dist/
+.expo/
+apps/mobile/android/
+apps/mobile/ios/
