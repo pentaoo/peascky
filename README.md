@@ -41,6 +41,9 @@ npm run test:baseline
 See [`docs/BASELINE.md`](docs/BASELINE.md) for the exact Project v1, scheduler,
 Cloud Lab, sampler, offline export, and legacy Video Remix contracts.
 
+Portable TypeScript workspace responsibilities and development commands are
+documented in [`docs/WORKSPACE.md`](docs/WORKSPACE.md).
+
 ## GitHub Pages
 
 The latest `main` branch is deployed to

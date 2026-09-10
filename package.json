@@ -2,19 +2,30 @@
   "name": "pocket-jam-browser-baseline",
   "private": true,
   "version": "0.0.0",
-  "description": "Development-only characterization harness for the Pocket Jam browser prototypes.",
+  "description": "Pocket Jam browser baseline and portable workspace.",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "engines": {
     "node": ">=20"
   },
   "scripts": {
+    "test": "npm run test:packages && npm run test:boundaries",
+    "test:packages": "npm run test --workspaces --if-present",
+    "test:boundaries": "node scripts/check-portable-boundaries.cjs",
+    "test:n02": "npm run typecheck && npm test",
     "test:characterization": "node --test test/*.test.js",
     "test:browser": "node scripts/run-browser-checks.cjs scripts/browser-baseline-smoke.cjs",
     "test:cloud": "node scripts/run-browser-checks.cjs scripts/cloud-lab-smoke.cjs",
     "test:audio": "node scripts/run-browser-checks.cjs scripts/cloud-lab-audio-smoke.cjs",
-    "test:baseline": "node scripts/run-baseline.cjs"
+    "test:baseline": "node scripts/run-baseline.cjs",
+    "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "devDependencies": {
-    "playwright": "1.63.0"
+    "@types/node": "20.19.11",
+    "playwright": "1.63.0",
+    "tsx": "4.20.5",
+    "typescript": "5.9.2"
   }
 }
