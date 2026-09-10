@@ -1,9 +1,10 @@
-# Pocket Jam Native-First Winter Architecture
+# Pocket Jam Native-First Winter Architecture — Architecture v2
 
 Status: authoritative target architecture for September-December 2026  
 Snapshot date: 2026-09-09  
+Revised: 2026-09-10 (Architecture v2)
 Repository scope: current working tree, including the main browser prototype, Cloud Lab, and sampler study  
-Implementation status: design only; the native migration described here has not started
+Implementation status: N01-N03 portable foundations and N04 native shell code are implemented; N04 physical-device validation is pending and later native runtimes remain unbuilt
 
 This document is the architecture contract for Pocket Jam through the Winter 2026 release. It deliberately separates:
 
@@ -12,6 +13,21 @@ This document is the architecture contract for Pocket Jam through the Winter 202
 3. the **incremental migration path** between them.
 
 Statements marked **Decision** are binding for Winter work. Statements marked **Starting assumption** require validation but should be followed until evidence changes them. Statements marked **Open decision** must not be silently resolved inside an unrelated implementation task.
+
+### Architecture v2 decision summary
+
+Architecture v2 records these binding product decisions:
+
+- React Native/Expo owns the application shell; portable Core owns durable meaning; InteractionRuntime owns latency-critical interpretation; one replaceable VisualRuntime and one AudioRuntime own their respective device resources.
+- React Native Filament remains the preferred mobile 3D candidate, not a permanent dependency of Project or runtime contracts. Unity is not selected and is not part of the current implementation plan.
+- Render meshes are not authoritative interaction geometry. Lightweight interaction proxies belong to the InteractionStrategy/InteractionRuntime seam.
+- Zen Mode has no fixed Project duration. Finite phrases can repeat indefinitely; a lightweight future Track arranges finite phrase references and derives its duration from that content.
+- Background audio is out of scope for Winter v1. Backgrounding pauses/stops active work; foreground recovery remains paused until explicit user playback.
+- Export v1 is one stereo master. Stems remain a future capability, while routing retains Instrument → MixerChannel → buses/effects → Master structure.
+- User-recorded microphone samples remain local-only in multiplayer v1. Missing remote asset availability is explicit and does not invalidate Project identity.
+- Pixel 5 is the current Android performance floor. The required visual baseline is stable 60 FPS; 90 FPS is optional. Warm p50/p95/p99 and ten-minute thermal behavior are measured.
+- At least ten independent active contacts are supported when device capability permits. React rendering and renderer picking are excluded from the critical local touch-to-audio path.
+- Speaker and suitable wired output are realtime latency acceptance routes. Bluetooth is supported only as an explicitly high-latency mode and is reported separately.
 
 ## 1. Executive Summary
 
@@ -38,6 +54,7 @@ The target shape is appropriately small for a small team if the boundaries in th
 - a serializable Project Store is the durable musical and spatial truth;
 - an Instrument Registry separates reusable definitions from placed instances;
 - normalized commands and performance interactions decouple input from audio, visuals, haptics, persistence, and networking;
+- an explicit InteractionRuntime owns latency-critical contact state, capability fallback, and lightweight interaction geometry;
 - one Transport maps musical time to native audio time;
 - one AudioRuntime owns the mobile audio session and realtime graph;
 - separate audio and visual asset runtimes own decoded buffers and GPU resources;
@@ -46,7 +63,7 @@ The target shape is appropriately small for a small team if the boundaries in th
 - SessionRuntime owns multiplayer state, clock synchronization, reconnect, and presence outside Project;
 - SQLite-like structured storage and application file storage replace localStorage for production data.
 
-This is a target contract, not implemented health. Today the target architecture is **well specified but unbuilt**.
+This remains a target contract rather than a claim of production health. The portable foundation and N04 application shell now exist, while Transport, AudioRuntime, production InteractionRuntime/VisualRuntime, persistence, sampling, export, and sessions remain unbuilt.
 
 ### Top architectural risks through December
 
@@ -84,9 +101,9 @@ Before adding a large instrument catalogue or polishing many screens, Pocket Jam
 | Sequenced patterns and loops | Foundation in September; product expansion in November | Musical content cannot be limited to one 16-step grid or grow into a DAW timeline. |
 | Drums, synths, basses, pads, and samples playing simultaneously | Winter | Registry, mixer, polyphony, choke, asset, and export contracts must work across audio programs. |
 | Detailed first-party synth editing | November | Parameter schemas and stable audio-program IDs are required; a modular graph is not. |
-| Real microphone recording and playable sampling | October | Permissions, recorder, file storage, metadata DB, trimming, decoding, persistence, and optional session transfer are required. |
+| Real microphone recording and playable sampling | October | Permissions, recorder, file storage, metadata DB, trimming, decoding, and persistence are required; user recordings remain local-only in multiplayer v1. |
 | Sampler | October/November | The concept migrates to shared Transport, AudioRuntime, Project, Asset, Instrument, and Interaction layers. |
-| Audio export | November | Every normal production audio program needs realtime and offline render parity. |
+| Audio export | November | Every normal production audio program needs realtime/offline parity and one stereo-master v1 output; routing must not block future stems. |
 | Detailed tactile 3D instruments and expressive animation | October vertical slice; November expansion | Filament benchmark, visual assets, quality tiers, lifecycle, cache, and disposal are core systems. |
 | Visual reactions, glow, particles, and concert-like effects | October/November | Normalized musical/performance events feed a modest visual-reaction layer; effects do not own audio. |
 | Haptics | October/November | Independent consumer of normalized interaction events with graceful fallback. |
@@ -94,7 +111,7 @@ Before adding a large instrument catalogue or polishing many screens, Pocket Jam
 | QR-paired desktop companion | October | Web companion is a distinct device role using shared protocol/domain packages. QR is discovery only. |
 | Durable local projects and user audio assets | October | Structured metadata and binary files have separate storage and migration responsibilities. |
 | Instrument, kit, scene, and project-starting presets | Taxonomy in September; product work in November | Preset kinds remain explicit rather than one overloaded `preset` object. |
-| Mobile performance, memory, latency, and thermal quality | Continuous; release gate in late November/December | p95/p99 physical-device measurements and a representative 10-minute load are release criteria. |
+| Mobile performance, memory, latency, and thermal quality | Continuous; release gate in late November/December | Pixel 5 is the Android performance floor; p50/p95/p99 physical-device measurements and a representative 10-minute load are release criteria. |
 
 **Decision:** Video Remix is outside the Winter target. `src/video-remix.js`, its UI in `index.html`, and ADR 0002 remain legacy prototype history. They are not migrated, and their large-video decode/memory concerns do not drive the native roadmap.
 
@@ -109,8 +126,8 @@ Status vocabulary:
 
 | Feature | Required subsystem | Supported by target architecture? | Missing work | Target timing |
 | --- | --- | --- | --- | --- |
-| Native iOS app | mobile shell, platform adapters, lifecycle | Ready by architecture | Expo app, native dev build, audio/renderer integration, device QA | September foundation; Winter release |
-| Native Android app | mobile shell, platform adapters, lifecycle | Ready by architecture | Same plus Android device matrix and audio-route validation | September foundation; Winter release |
+| Native iOS app | mobile shell, platform adapters, lifecycle | Ready by architecture | physical development-build validation, audio/renderer integration, device QA | September foundation; Winter release |
+| Native Android app | mobile shell, platform adapters, lifecycle | Ready by architecture | Pixel 5 development-build validation, Android matrix, and audio-route validation | September foundation; Winter release |
 | App Store | release configuration, privacy, migrations | Ready by architecture | identifiers, signing, permission copy, privacy declarations, release build pipeline | Late November/December |
 | Google Play | release configuration, permissions, migrations | Ready by architecture | application ID, signing, data-safety inputs, release build pipeline | Late November/December |
 | 4x5 spatial field | Project Scene, InteractionRuntime, VisualRuntime | Ready by architecture | minimum-screen layout, picking/hit areas, accessibility, benchmark scene | September/October |
@@ -118,7 +135,7 @@ Status vocabulary:
 | Sustained notes/continuous/XY | InteractionRuntime, AudioRuntime, registry strategies | Needs extension | native multitouch, cancel semantics, smoothing, per-definition mapping | September/October |
 | Live play over loops | Transport, AudioRuntime | Needs extension | unify live and scheduled paths; test under load | September |
 | Sequenced patterns | Project Pattern, commands, Transport | Needs extension | portable model/editor projection and native scheduling | September/November |
-| Flexible loops | Project Loop, Transport | Needs implementation | pattern/audio loop model, lengths, offsets, repeat behavior | September/November |
+| Flexible loops | Project Loop, Transport | Needs extension | N03 model is implemented; Transport and product editing remain | September/November |
 | Multiple simultaneous instruments | AudioRuntime, mixer, polyphony/choke | Needs extension | production graph, per-instance voices, physical-device stress tests | September/November |
 | Drums and basses | Instrument Registry, audio programs | Needs extension | port procedural programs with realtime/offline parity | September/November |
 | Parameter-rich synths | registry parameter schema, synth programs | Ready by architecture | first-party implementations, UI, presets, export parity | November |
@@ -137,7 +154,7 @@ Status vocabulary:
 | Multiplayer test | SessionRuntime, protocol, relay/service | Needs implementation | backend choice, clock sync, sequencing, reconnect, presence | October |
 | Remote performance timing | SessionClock, ClockSync, Transport mapping | Needs implementation | sync estimator, jitter policy, metrics, device tests | October |
 | Durable collaborative edits | command authority, snapshots/replay | Needs implementation | MVP authority and conflict policy | October |
-| Custom sample in multiplayer | asset availability and transfer seam | Open product decision | decide local-only vs upload/share; backend/object storage if shared | Decision in September; October if in scope |
+| Custom sample in multiplayer | asset availability seam | Ready by architecture | explicit local-only/missing state; no recording upload or object storage in v1 | October validation |
 | QR desktop companion | pairing service, companion web, capabilities | Needs implementation | token flow, QR scan/deep link, web UI, role negotiation | October |
 | Companion mixer/sequencer/overview | web app, shared core/protocol | Ready by architecture | choose October surface and implement it | October |
 | Mobile performance | benchmark harness and quality policy | Ready by architecture | real assets, physical-device p95/p99/thermal baselines | Start September; continuous |
@@ -239,6 +256,8 @@ There is no package manifest, lockfile, TypeScript configuration, application fr
 
 **Starting assumption:** React Native Filament is the production direction. React Three Fiber with Expo GL is a benchmark/fallback candidate, not the default production architecture. A WebView/WebGL-centric shell is rejected unless measured results and required features demonstrate a concrete advantage.
 
+**Decision:** Unity is not the selected production runtime. Do not add Unity packages or integration. Filament remains replaceable behind the mobile VisualRuntime boundary; an evidence-backed renderer ADR may change the adapter without changing Project, InstrumentDefinition/Instance, Transport, AudioRuntime, protocol, or persistence semantics.
+
 **Decision rule for substitutions:** a replacement for the preferred audio or renderer stack requires a short ADR documenting the hard blocker, physical-device evidence, migration impact, and how all contracts in this document remain satisfied.
 
 ## 6. Target Repository / Monorepo Structure
@@ -251,10 +270,11 @@ pocket-jam/
     mobile/
       app/                       # Expo Router routes
       src/
-        composition/             # runtime wiring, no domain rules
+        composition/             # application-owned runtime wiring, no domain rules
         audio/                   # native AudioRuntime + programs
         visual/                  # Filament VisualRuntime + reactions
-        interaction/             # touch/gesture/keyboard adapters
+        interaction/             # InteractionRuntime, geometry, input adapters
+        lifecycle/               # centralized platform lifecycle policy
         sampling/                # recorder and sample preparation UI adapters
         persistence/             # SQLite/filesystem adapters
         session/                 # mobile connection/platform adapter
@@ -321,13 +341,16 @@ The exact package arrows may be split to avoid cycles, but these rules are bindi
 ```mermaid
 flowchart TB
   subgraph Mobile[React Native mobile application]
+    Shell[Expo application shell + routes]
+    Composition[Application composition root]
     Input[Touch / Gesture / Keyboard adapters]
+    Interaction[InteractionRuntime]
     Cmd[Command + Interaction Dispatcher]
     Store[Project Store]
     Registry[Instrument Registry]
     Transport[Authoritative Transport]
     Audio[Native AudioRuntime]
-    Visual[Filament VisualRuntime]
+    Visual[Replaceable mobile VisualRuntime\nFilament preferred]
     Haptic[HapticRuntime]
     Recording[RecordingService]
     Export[OfflineRenderService]
@@ -338,12 +361,18 @@ flowchart TB
     Lifecycle[App Lifecycle Coordinator]
   end
 
-  Input --> Cmd
+  Shell --> Composition
+  Composition --> Store
+  Composition --> Interaction
+  Composition --> Audio
+  Composition --> Visual
+  Input --> Interaction
+  Interaction -->|durable intents| Cmd
+  Interaction -->|immediate performance interactions| Audio
+  Interaction --> Visual
+  Interaction --> Haptic
+  Interaction -->|coalesced copy after local dispatch| Session
   Cmd -->|durable commands| Store
-  Cmd -->|performance interactions| Audio
-  Cmd --> Visual
-  Cmd --> Haptic
-  Cmd --> Session
   Store --> Transport
   Store --> Audio
   Store --> Visual
@@ -366,6 +395,7 @@ flowchart TB
   Lifecycle --> Recording
   Lifecycle --> Persist
   Lifecycle --> Session
+  Lifecycle --> Interaction
 
   Companion[React/TypeScript desktop companion] <-->|shared protocol over session service| Session
   QR[QR pairing token / session URL] --> Companion
@@ -407,6 +437,8 @@ type TransportConfig = {
 };
 
 type Scene = {
+  columns: number;
+  rows: number;
   placements: Array<{
     instanceId: InstrumentInstanceId;
     cell: { column: number; row: number };
@@ -485,6 +517,8 @@ type AssetReference = {
 - Stable IDs address instruments, patterns, loops, channels, events, and assets. Scene array order is not identity.
 - Scene placement is authoritative. Visual mesh transforms are derived views and never write themselves back implicitly.
 - The minimum supported scene accommodates a 4x5 logical field. Larger footprints reserve multiple cells. Product UI may art-direct offsets without losing logical placement.
+- A complete 4x5 field may contain 20 simple 1x1 instances or fewer mixed footprints. Required examples include 1x1, 2x1, 3x1, and 2x2, while other validated rectangles remain possible.
+- Project has no fixed global duration. Finite Pattern/phrase content and loop intent can support indefinite Zen playback without materializing an infinite timeline.
 - `worldId`, `collectionId`, and `styleId` belong on definitions or visual metadata. They do not prevent different visual worlds from coexisting.
 - Project stores asset IDs, not file URIs as portable identity. A local asset repository resolves the current device's file location.
 - Defaults may resolve from InstrumentDefinition. Persist instance overrides needed to reproduce the sound; migrations materialize values when definition changes would otherwise alter old projects.
@@ -499,6 +533,7 @@ The following never enters Project JSON:
 - native file handles, temporary recording files, database connections, open streams, or permission objects;
 - sockets, connection state, participant presence, ping samples, session keys, jitter buffers, or clock estimates;
 - current playback cursor and transient pressed/hovered/selected visual state unless a product requirement explicitly makes it durable.
+- FIELD/FOCUS/TRANSITION/BACKGROUND presentation state, selected hero instrument, current visual LOD, interaction contact ownership, and asset availability on one device.
 
 ## 9. Instrument Architecture
 
@@ -538,11 +573,24 @@ The mobile composition root maintains small explicit registries:
 
 ```text
 audioProgramId            -> native realtime + offline audio program
-visualProgramId           -> Filament view factory/reaction adapter
+visualProgramId           -> VisualRuntime view factory/reaction adapter
 interactionStrategyId     -> normalized interaction-to-parameter mapping
 ```
 
 New first-party instruments register programs and data. They must not add another branch to a single central switch spread across input, renderer, audio, and export. This is an internal registry for approximately 10-30+ first-party definitions, not a public plugin ABI or arbitrary DSP graph.
+
+The binding relationship is:
+
+```text
+InstrumentDefinition / InstrumentInstance
+  +-- AudioProgram
+  +-- InteractionStrategy
+  |     +-- lightweight InteractionGeometry
+  +-- VisualProgram
+        +-- GLB / materials / animations / VFX
+```
+
+Render LOD and visual skins may change without changing the interaction proxy or musical meaning. Touch targets may deliberately be larger and simpler than visible meshes.
 
 ### 9.3 Synth and sample-backed instances
 
@@ -551,6 +599,7 @@ New first-party instruments register programs and data. They must not add anothe
 - A `SampleInstrument` is a normal definition whose instance binds a stable `assetId` to a declared slot such as `primarySample`. Trim points belong to AudioAsset metadata or a project-specific playback region, not to decoded buffers.
 - Choke and polyphony policies are definition data enforced by AudioRuntime and OfflineRenderService.
 - Visual style never determines audio compatibility. A cyberpunk visual can use the same interaction/audio archetype as a Cloud object without sharing renderer technology.
+- A synth may expose a compact FIELD surface with phrase triggers and simplified controls, then an expanded FOCUS surface with a full keyboard and detailed controls. Both resolve to the same underlying instance, audio program, parameters, polyphony, and mixer semantics; presentation mode is runtime UI state unless a future durable requirement explicitly says otherwise.
 
 ### 9.4 Command / Interaction Layer
 
@@ -620,6 +669,8 @@ High-rate updates are ephemeral. Audio may consume native-rate/smoothed values; 
 
 Pocket Jam has one authoritative musical Transport per active Project playback session.
 
+Zen Mode may run indefinitely. Transport expands finite Pattern/phrase and MusicalLoop content incrementally through a bounded look-ahead horizon; it never constructs an infinite event list or accumulates unbounded playback history. Project has no global duration field.
+
 ### Responsibilities
 
 - BPM, time signature, bar/beat/subdivision/tick conversion;
@@ -654,6 +705,8 @@ Exact thresholds are calibrated in the audio spike, but behavior is fixed concep
 4. Remote ephemeral events use their session timestamp and a small adaptive lead/jitter window. Events too late for a musically useful schedule follow instrument-aware play-now/drop rules and are counted.
 5. Every start/resume/seek increments a generation so stale scheduled UI and runtime work can be ignored.
 
+Backgrounding increments/invalidates the active scheduling generation, cancels future unsent work, releases active voices through the runtime owner, and pauses Transport. Foreground recovery rebuilds mappings as needed but remains paused, emits no catch-up events, and waits for explicit user Play.
+
 ### Session mapping seam
 
 ```text
@@ -678,6 +731,13 @@ Pocket Jam is a live instrument field with loops and sequencing, not only a 16-s
 - Different loop lengths are allowed. Transport repeats each loop against its own length while respecting the Project loop range.
 - Mute/solo belongs to mixer/channel state; disabling a specific musical loop belongs to the Loop.
 - Live interaction is not automatically recorded into a clip. Microphone recording creates an AudioAsset, not a performance-event clip.
+
+### Zen, phrase, and future Track seam
+
+- A **Phrase** is finite reusable musical material. In the current foundation, a finite Pattern is sufficient structured phrase content; a distinct Phrase wrapper should be added only when a real workflow needs metadata or multiple content kinds.
+- A **Zen performance** combines indefinitely repeating finite phrases/loops with direct live performance. It has no predetermined end and does not persist an unbounded event history.
+- A future **Track/Arrangement** is a lightweight finite composition of references to finite phrase content. Its duration is computed from the arranged references; it is not a maximum Project duration.
+- N03's explicit Pattern lengths, loop sources/lengths, and absence of Project duration are the compatibility seam. N17 owns the minimum Track data/commands once the creation UX is known.
 
 Winter does not require freeform arrangement regions, arbitrary automation curves, comping, time stretching, clip warping, or a song-length multitrack editor. Parameter locks on discrete Pattern events are sufficient only where a real instrument/editor needs them. If live-performance recording becomes a product requirement, add it through a separate decision rather than smuggling a `PerformanceClip` into the foundation.
 
@@ -714,6 +774,8 @@ AudioProgram voice/sample source
 ```
 
 The Project stores graph intent: parameter values, channel gain/pan/mute/solo, sends, bus program IDs, and effect parameters. AudioRuntime stores native graph handles, smoothed automation, active voices, decoded buffers, meters, and current route.
+
+Realtime acceptance routes are the device speaker and suitable wired output. Bluetooth remains a supported route with explicit high-latency product guidance and separate measurements; it is not the reference route for live-performance acceptance. Diagnostics distinguish application-added input-to-schedule latency from physical input-to-acoustic-output latency and report warm p50/p95/p99 under representative render, interaction, and Transport load.
 
 ### 12.3 AudioProgram contract
 
@@ -761,6 +823,8 @@ Before accepting the default audio stack, the spike must prove on a recent iPhon
 
 If React Native Audio API fails a hard requirement, keep the public contracts and evaluate the smallest native alternative. Do not spread vendor-specific objects into core packages while deciding.
 
+N05 is the next technical gate after N04. It must prove low-latency AudioRuntime behavior on physical hardware before broad audio implementation begins. It also proves one deterministic stereo-master offline render; production encoding and export UX remain N12 work.
+
 ## 13. Microphone Sampling Architecture
 
 ### 13.1 End-to-end flow
@@ -778,7 +842,7 @@ user requests recording
   -> AudioAssetRuntime decodes/preloads the trimmed source
   -> sample plays through normal AudioRuntime/mixer while loops continue
   -> Project and asset metadata persist independently
-  -> SessionRuntime advertises availability or requests share/upload when multiplayer policy allows
+  -> SessionRuntime advertises local availability; remote peers use an explicit unavailable state
 ```
 
 ### 13.2 AudioAsset metadata
@@ -798,7 +862,7 @@ type AudioAsset = {
   contentHash?: string;
   trim: { startSeconds: number; endSeconds: number; fadeInMs?: number; fadeOutMs?: number };
   analysis?: { waveformKey?: string; peak?: number; normalizedGain?: number };
-  syncState?: "local-only" | "uploading" | "shared" | "missing";
+  syncState?: "local-only" | "missing";
 };
 ```
 
@@ -819,7 +883,9 @@ Winter trimming is nondestructive by default: metadata points at start/end and o
 
 ### 13.5 Multiplayer availability seam
 
-A sample used locally can always remain local-only. A remote peer receiving an event for an unavailable asset gets a deterministic missing-asset state and does not crash or substitute an unrelated buffer. If October requires shared custom samples, the session service needs authenticated upload/download plus object storage, content metadata/hash, size/format limits, progress, cancellation, and retention rules. This is an explicit September scope decision, not an assumption that WebSocket messages carry audio files.
+**Resolved for multiplayer v1:** user-recorded and imported audio remains local-only. Factory catalogue assets are assumed available by stable ID/version on every compatible client. A remote peer receiving an event for an unavailable user asset enters a deterministic missing-asset state; it does not crash, block the performer's local audio, substitute unrelated content, or silently upload bytes.
+
+Stable `AssetId` identity and runtime availability are separate concerns. A later product decision may add authenticated transfer, content hashes, progress, cancellation, retention, and object storage without changing Project identity or normal command/event schemas. Multiplayer v1 does not build that backend.
 
 ## 14. Asset Architecture
 
@@ -852,13 +918,12 @@ GLB is the preferred model container. The pipeline supports texture/material nam
 
 ### 15.1 One scene-level runtime
 
-One `VisualRuntime` owns one mobile renderer/view, engine, scene, camera, lighting rig, frame loop, quality controller, VisualAssetRuntime, picking service, reaction pool, lifecycle state, and teardown path.
+One replaceable `VisualRuntime` owns one mobile renderer/view, engine, scene, camera, lighting rig, frame loop, quality controller, VisualAssetRuntime, reaction pool, lifecycle state, and teardown path. React Native Filament is the preferred adapter candidate, not the contract. Renderer picking may support noncritical selection/debug flows but does not own latency-critical performance targeting.
 
 ```ts
 interface VisualRuntime {
   mount(surface): Promise<void>;
   syncScene(scene: Scene, instruments: ReadonlyMap<InstrumentInstanceId, InstrumentInstance>): void;
-  hitTest(point): HitResult | null;
   handleInteraction(event: PerformanceInteraction): void;
   handleMusicalEvent(event: ScheduledMusicalEvent): void;
   setLifecycle(state): void;
@@ -880,7 +945,11 @@ The handle can update parameters, transform, and reactions and can dispose its o
 
 Project Scene owns logical cells, footprints, and optional art-directed offsets. VisualRuntime resolves these to world transforms for the current screen/camera. `SLOT_PRESENTATION` from the prototype is migration reference only; its pleasing layout should be copied into initial Project placement/offset values, not retained as hidden renderer truth.
 
-The 3D surface provides scene picking against simple hit proxies or a mapped interaction plane. Gesture Handler owns gesture recognition/cancellation, then associates normalized input with the picked InstrumentInstance. Complex animated meshes are not required to be hit geometry. Accessible/native alternatives expose stable labels and controls without requiring the mesh to be a React view.
+`InteractionRuntime` resolves performance targeting against lightweight interaction geometry or a mapped interaction plane, independently of the detailed rendered mesh. It owns contact-to-instance capture and normalized gesture state; renderer picking is allowed only for noncritical selection/debug flows. Complex animated meshes are never the required hit geometry. Accessible/native alternatives expose stable labels and controls without requiring the mesh to be a React view.
+
+The visual presentation state is explicit: `FIELD`, `FOCUS`, `TRANSITION`, or `BACKGROUND`. `FIELD` keeps the complete playable layout readable and cheap. `FOCUS` may raise detail for one selected instrument while preserving its identity, parameters, audio program, and InteractionRuntime semantics. `TRANSITION` is bounded and interruptible. `BACKGROUND` submits no frames. The initial approximately 70/30 jam-to-controls split is a shell/product target, not a persisted Project or renderer invariant.
+
+FOCUS is an intentional hierarchy and optimization mode: the hero may use higher LOD, richer materials, animation, and bounded VFX while background instruments may lower LOD, throttle/freeze idle animation, remove particles/shadows/secondary lights, use cheaper shading, and dim or move back. These changes never alter Project placement/identity or AudioRuntime behavior.
 
 ### 15.3 Animation and visual reactions
 
@@ -929,7 +998,7 @@ These are experiment inputs, not permanent laws:
 
 | Measure | Initial target for benchmark scene |
 | --- | --- |
-| Frame delivery | 60 fps target; p95 <= 16.7 ms, p99 <= 33 ms after warm-up; measured stable 30 fps fallback where necessary |
+| Frame delivery | stable 60 fps required on the Pixel 5 floor after warm-up; p95 within 16.67 ms with useful headroom sought, p50/p99 recorded; 90 fps optional on capable devices |
 | Draw calls | approximately 100 baseline / 150 peak |
 | Visible geometry | approximately 200k-300k triangles for the initial full field |
 | GPU texture memory | approximately 64-128 MiB estimate for scene assets, calibrated per tier |
@@ -942,30 +1011,33 @@ If a beautiful representative scene exceeds one starting number while meeting fr
 
 ### 16.3 Mandatory renderer benchmark gate
 
-Benchmark before committing all production art:
+Benchmark before committing all production art. Pixel 5 is the Android performance floor; the iOS matrix retains a recent iPhone and an older/mid-tier iPhone:
 
-- 4x5 field with approximately 20 visible object positions;
+- a worst-case complete 4x5 field of 20 independent 1x1 instances and a representative mixed-footprint field including larger objects;
+- both `FIELD` and selected-instrument `FOCUS` presentation states;
 - 6-8 unique instrument models reused across instances where realistic;
 - representative PBR materials, normal maps, baked AO, mipmaps, and compressed texture candidates;
 - representative transform/morph/baked animations;
 - expected glow/effect load and particles only if planned for the product;
-- a live audio loop, several sustained voices, rapid multitouch, and parameter changes;
+- a live audio loop, several sustained voices, ten independent active contacts, and parameter changes;
 - asset cold load, warm load, project swap, background/foreground, and ten-minute continuous use.
 
-Test React Native Filament first and compare React Three Fiber/Expo GL only enough to answer concrete risk questions. Test a recent iPhone, older/mid-tier iPhone, and mid-tier Android. Record frame p50/p95/p99, input-to-visual latency, input-to-audio scheduling latency, JS/UI thread stalls, CPU/GPU/heap estimates where available, draw/material/texture/entity counts, cold/warm load time, battery/CPU indicators, and thermal degradation. Store the result as an ADR and reproducible benchmark, not a verbal impression.
+Test React Native Filament first and compare React Three Fiber/Expo GL only enough to answer concrete risk questions. Test a recent iPhone, an older/mid-tier iPhone, and Pixel 5. Stable 60 FPS is required on Pixel 5; 90 FPS is optional rather than an acceptance target. Record frame p50/p95/p99, input-to-visual latency, application-added input-to-audio scheduling latency, JS/UI thread stalls, CPU/GPU/heap estimates where available, draw/material/texture/entity counts, cold/warm load time, battery/CPU indicators, and thermal degradation. Store the result as an ADR and reproducible benchmark, not a verbal impression.
 
 ## 17. Interaction Architecture
 
+One application-level `InteractionRuntime` owns latency-critical contact capture, lightweight hit geometry, strategy state, normalization, cancellation, and immediate fan-out. React screens may configure it and subscribe to low-frequency diagnostics; React rendering and VisualRuntime picking do not sit in the performance-critical prefix.
+
 ### 17.1 Input adapters
 
-- Gesture Handler translates touch, long press, drag, note-surface movement, and XY input.
+- A native/Gesture Handler adapter translates touch, long press, drag, note-surface movement, and XY input into `InteractionRuntime`.
 - Native keyboard input supports companion/accessibility/testing where relevant.
 - Sequencer and SessionRuntime produce the same normalized performance semantics without constructing touch events.
-- Visual picking returns an InstrumentInstance ID; the input adapter never exposes a Filament entity to audio or domain code.
+- Lightweight interaction geometry resolves an InstrumentInstance ID without exposing a Filament entity to audio or domain code. Renderer picking is reserved for noncritical selection/debug paths.
 
 ### 17.2 Multitouch and cancellation
 
-Each active contact has an interaction ID and independent target/strategy state. A second finger cannot overwrite a single module-global loop or voice. Pointer/gesture cancel, route/navigation transition, application blur/background, lost native surface, instrument removal, and connection role change all lead to an idempotent `cancel`/`stop` and release of audio/visual/haptic state.
+Each active contact has an interaction ID and independent target/strategy state. The runtime supports at least ten simultaneous active contacts even when the OS/device delivers fewer, so no shared-state design imposes a smaller application cap. A second finger cannot overwrite a single module-global loop or voice. Pointer/gesture cancel, route/navigation transition, application blur/background, lost native surface, instrument removal, and connection role change all lead to an idempotent `cancel`/`stop` and release of audio/visual/haptic state.
 
 ### 17.3 Pressure and velocity
 
@@ -1053,6 +1125,8 @@ validated Project snapshot at revision N
 
 `ExportRequest` specifies Project revision, start/end musical position or loop count, tail duration policy, sample rate/channel format, and output format supported by the release. The service preflights missing assets and unsupported programs before a long render, reports progress/cancellation, writes to a temporary file, then atomically registers or shares the result.
 
+**Resolved v1 product shape:** export produces one stereo master. Internal program and mixer routing must remain capable of addressing buses/channels so a later stems feature can be added without redefining Project, but v1 does not expose or promise stems. Exact codec/container and maximum export range remain product decisions for N12. Because Zen has no natural end, every Zen export request supplies an explicit finite loop count or end position; a future finite Track derives its range from arrangement content.
+
 ### 20.2 Parity rules
 
 - Transport expands the same Pattern and Loop semantics used for realtime playback.
@@ -1103,7 +1177,7 @@ type Device = {
 | Transport control | start at session time, stop, seek, BPM generation | authoritative leader + generation + session musical timestamp |
 | Ephemeral performance | trigger, note start/update/stop, XY/control update | timestamped; start/stop protected; updates throttled/coalesced; bounded dedupe/jitter |
 | Presence | participant/device online, role, coarse activity | lossy/expiring; never Project truth |
-| Asset availability | asset ID/hash/metadata, available/missing/upload state | control messages only; binary transfer uses object storage/HTTP if enabled |
+| Asset availability | asset ID/version/hash where useful, available/missing/local-only state | control messages only; multiplayer v1 transfers no user audio binary |
 
 Ordinary collaboration sends normalized commands/events, not rendered audio, raw touch streams, DOM nodes, Filament handles, native objects, or database rows. Every client generally renders its own audio locally.
 
@@ -1138,7 +1212,7 @@ Events arriving too late use bounded policy: percussion may play immediately wit
 
 ### 21.6 Security and asset seam
 
-Joining requires a short-lived, scoped pairing/session token. Validate message size, schema, role permissions, IDs, numeric ranges, and rate. Use encrypted transport. Custom audio bytes never ride unbounded inside command JSON or WebSocket frames. See Sections 13, 26, and 27 for the unresolved October custom-sample scope.
+Joining requires a short-lived, scoped pairing/session token. Validate message size, schema, role permissions, IDs, numeric ranges, and rate. Use encrypted transport. Multiplayer v1 does not transfer custom audio bytes through command JSON, WebSocket frames, object storage, or a hidden upload side channel. A performer always hears local user audio without waiting for network acknowledgement; peers without that asset expose the explicit missing/local-only state. See Sections 13 and 26.
 
 ## 22. Desktop Companion Architecture
 
@@ -1171,8 +1245,8 @@ One `LifecycleCoordinator` observes platform events and sequences runtime action
 | Event | Required behavior |
 | --- | --- |
 | Cold launch | open/migrate repositories, reconcile temp assets, restore last Project or safe start, construct runtimes lazily, report recovery failures |
-| Foreground/active | validate audio route/session, resume/recreate visual surface, reconnect/resync session, refresh permissions only when relevant |
-| Background/inactive | stop/pause renderer, cancel active gestures, release or pause voices according to product policy, flush Project revision, finalize/cancel recording, update presence |
+| Foreground/active | validate audio route/session, resume/recreate visual surface, reconnect/resync session, refresh permissions only when relevant; restore Transport as paused and require an explicit user Play action |
+| Background/inactive | `InteractionRuntime.cancelAll`; invalidate the current Transport generation; release active voices and pause audio; stop renderer; flush Project revision; finalize/cancel recording; update presence |
 | Audio interruption begins | stop scheduling new output, increment generation/cancel held notes, preserve musical position/intent, present recoverable state |
 | Audio interruption ends | reactivate only when platform allows and user/product policy permits; resync Transport rather than catch-up burst |
 | Audio route change | detect headphones/Bluetooth/speaker, update latency estimate, prevent accidental feedback, inform session/diagnostics if timing changes |
@@ -1184,7 +1258,7 @@ One `LifecycleCoordinator` observes platform events and sequences runtime action
 | Memory pressure | evict unreferenced decoded/GPU caches and decorative pools before current playable assets |
 | Crash/relaunch | last committed Project and registered assets remain valid; orphan reconciliation is conservative |
 
-The product must explicitly decide whether Transport continues, pauses, or stops when backgrounded. App-store platform constraints and the absence/presence of a justified background-audio mode govern this decision. Do not accidentally keep background audio by virtue of a native module default.
+**Resolved v1 policy:** background audio is out of scope. Backgrounding cancels every active interaction, invalidates the Transport generation, releases active voices, pauses audio/Transport, and stops visual work. Foreground restoration does not catch up missed events and does not resume playback automatically; after runtime and route recovery, the user must press Play. A future background-audio feature requires a new product decision, platform-capability review, and lifecycle ADR.
 
 ## 24. App Store / Google Play Architecture
 
@@ -1202,8 +1276,8 @@ Production distribution changes development architecture before the final submis
 
 - Include clear iOS microphone usage text and Android recording permission declarations. Request permission only when the user begins sampling, not at launch.
 - Add camera permission only if QR scanning requires it; support an equivalent deep-link/code path where practical. Do not request broad media-library permissions to access app-owned files.
-- Document microphone recording, user-generated samples, session/presence metadata, crash diagnostics, and any sample upload in Apple privacy manifests/declarations and Google Play Data Safety inputs as the implementation becomes concrete.
-- Background audio, local network, Bluetooth, or other capabilities are added only if the product uses and can justify them.
+- Document microphone recording, user-generated samples, session/presence metadata, and crash diagnostics in Apple privacy manifests/declarations and Google Play Data Safety inputs as the implementation becomes concrete. Multiplayer v1 declares no custom-sample upload because it performs none.
+- Do not add background-audio capabilities or modes in v1. Local-network, Bluetooth, or other capabilities are added only when the implemented product behavior requires and justifies them.
 
 ### Release seams
 
@@ -1217,16 +1291,16 @@ This is not an App Store marketing checklist. Screenshots, description copy, and
 
 ## 25. Performance Budgets and Measurement
 
-Budgets are thresholds for investigation and release decisions, measured on physical devices in release-like builds. Record p50 for normal experience and p95/p99 for tail quality; averages alone hide flams and dropped frames.
+Budgets are thresholds for investigation and release decisions, measured on physical devices in release-like builds. Pixel 5 is the Android floor. Record p50 for normal experience and p95/p99 for tail quality; averages alone hide flams and dropped frames. Attribute application-added input-to-schedule time separately from physical input-to-acoustic-output time.
 
 | Area | Starting measure/target | Required instrumentation/test |
 | --- | --- | --- |
 | Local input-to-audio scheduling call | warm p95 under 10 ms, p99 under 20 ms on target devices | native input timestamp to accepted native audio schedule; also acoustic loopback for end-to-end output latency |
-| Acoustic output latency | establish device/route baselines; no universal arbitrary pass number | wired/speaker/Bluetooth results reported separately; optimize supported performance routes |
+| Acoustic output latency | establish device/route baselines; no universal arbitrary pass number | speaker/wired are acceptance routes; Bluetooth is explicitly high latency and reported separately |
 | Scheduler lateness | no unbounded catch-up; late/skip/resync counters near zero in steady benchmark | two-minute and ten-minute loop under 3D/touch load plus injected JS stalls |
 | Voice load | no unexplained drops or monotonic node growth at defined 20-object musical stress scene | per-program/global voices, steals, cleanup time, CPU indicators |
-| UI gesture handling | no recurring task >50 ms; p95/p99 input dispatch tracked | rapid two-to-five-touch traces while transport/render/network active |
-| 3D frame time | 60 fps target, p95 <=16.7 ms and p99 <=33 ms; stable quality-tier fallback | Filament diagnostics and external profiling across device tier/thermal run |
+| UI gesture handling | no recurring task >50 ms; p50/p95/p99 dispatch tracked; ten-contact ownership remains correct | ten-contact traces while Transport/render/network are active |
+| 3D frame time | stable 60 fps required on Pixel 5 in both FIELD and FOCUS; 90 fps optional; p50/p95/p99 reported | worst-case 20 x 1x1 and representative mixed-footprint scenes under ten-contact/audio load |
 | Input-to-visual reaction | p95 within one rendered frame after input at current tier; p99 reported | native input timestamp to presented-frame marker where tooling permits |
 | Memory | stable after repeated scene/project/sample swaps; explicit per-device peak baseline | JS/native/GPU/decoded audio estimates, 100 swaps, memory warning behavior |
 | Asset load | essential playable scene has measured cold/warm targets after real assets exist | startup-to-interactive, model/texture/sample readiness, placeholder duration |
@@ -1234,7 +1308,7 @@ Budgets are thresholds for investigation and release decisions, measured on phys
 | Export | render succeeds for representative project without UI/audio starvation | realtime factor, peak memory, cancellation, parity fixture |
 | Session clock | offset uncertainty, RTT distribution, drift, and resync convergence reported | local/Wi-Fi and representative internet conditions |
 | Remote performance | p50/p95/p99 arrival-to-schedule, late/drop/play-now rates | two/three devices, induced jitter/loss/reconnect, wired/Bluetooth reported separately |
-| Thermal/battery | no uncontrolled degradation over a ten-minute representative jam | device thermal state, frame tier changes, CPU/battery indicators where practical |
+| Thermal/battery | no uncontrolled degradation over a ten-minute representative jam | Pixel 5 plus iPhone matrix; device thermal state, frame tier changes, CPU/battery indicators where practical |
 
 The measurement harness must tag app version/commit, device model, OS, release/debug mode, audio route, renderer/quality tier, scene asset version, and session network conditions. Comparative claims without this context are not actionable.
 
@@ -1248,28 +1322,34 @@ Release gates are feature-specific. A mid-tier Android may use reduced render sc
 - Validate all persisted, imported, deep-linked, and network data at runtime. Bound message size/rate, numeric parameter ranges, sample duration/bytes/formats, filenames, and decoded resource sizes.
 - Use authenticated transport for sessions. Participant/device roles constrain durable commands and Transport authority.
 - Do not put service secrets, signing materials, permanent credentials, local paths, or secure-storage handles in Project files or shared packages.
-- Custom-sample upload, if enabled, needs access control, object expiration/retention, content-type verification, quota/abuse limits, and a user-visible deletion path. Do not silently make a local sample public to make a remote note audible.
+- Multiplayer v1 never uploads user recordings/imports. A future transfer feature requires a separate security/privacy design covering access control, expiration/retention, type verification, quotas/abuse limits, and user-visible deletion; it must never silently make a local sample public.
 - Diagnostics default to technical timings/counts rather than recording audio, note content, Project names, sample names, or raw session payloads.
 
-## 27. Architectural Risks / Open Decisions
+## 27. Architectural Risks / Decisions
 
 | Priority | Risk or open decision | Why it matters | Decision deadline / mitigation |
 | --- | --- | --- | --- |
 | Critical | Can React Native Audio API satisfy exact scheduling, recording integration, effects, samples, and offline rendering on both platforms? | It determines the largest runtime boundary and export feasibility. | Spike in first September week; fallback ADR before broad audio program work. |
-| Critical | Must user-recorded samples be audible to other multiplayer clients in the October test? | “Yes” requires authenticated object storage/upload/download and availability UX; “no” requires explicit local-only behavior/fallback. | Product decision in September before sampling/session implementation. |
 | Critical | What lightweight session service/hosting and identity mechanism will October use? | Protocol can remain portable, but pairing, sequencing, snapshots, and clock tests need a real service. | Architecture spike/ADR in September. |
 | High | Does React Native Filament pass the 20-object audio+multitouch benchmark on the minimum device tier? | Failure changes renderer/art pipeline and could invalidate assets. | Benchmark before full production asset batch. |
-| High | What are the minimum supported iOS/Android OS versions and device tiers? | Controls native API availability, texture formats, performance tiers, and QA matrix. | Product/release decision in September. |
+| High | What are the minimum supported iOS/Android OS versions and compatibility tiers beyond the Pixel 5 performance floor? | Controls native API availability, texture formats, broader compatibility, and QA matrix. | Product/release decision in September. |
 | High | How much pattern editing ships in Winter? | A compact step editor and flexible Pattern schema are planned; a broader piano roll/arrangement changes UX effort, not core Transport. | Freeze November editing scope by early October. |
 | High | Are factory audio loops part of Winter or only generated Patterns? | Audio-loop source support is modeled; time-stretch/tempo matching is not. | Decide before content pipeline. Do not promise warping. |
-| High | Is background audio a real product requirement? | Affects store capabilities, lifecycle, session behavior, battery, and interruption policy. | Decide before production audio-session configuration. |
 | Medium | Does first public release require multiple projects, import/export backup, or cloud sync? | Repository supports multiple records, but product flows and backup policy change scope. | Decide by October persistence UX work. |
-| Medium | Exact export format and maximum duration | Encoding/native support and memory strategy depend on WAV/AAC/etc. and range. | Decide before November export productization. |
+| Medium | Exact stereo-master export codec/container and maximum duration | Encoding/native support and memory strategy still depend on WAV/AAC/etc. and range; stems are not a v1 requirement. | Decide before November export productization. |
 | Medium | Companion October role | Mixer + transport + pattern overview is recommended; a 3D mirror or full editor is much larger. | Product slice locked in September. |
 | Medium | Session authority behavior when host disconnects | Pause versus leader transfer affects clock and UX. | Define in multiplayer acceptance spec. |
 | Medium | Preset kinds shipped versus merely modeled | Taxonomy is stable; catalogue/editor effort is optional. | Decide by November planning. |
 
-Do not resolve these through incidental local implementation choices. Record consequential outcomes in ADRs and update this document if the target changes.
+Resolved v2 decisions:
+
+- user recordings/imported audio are local-only in multiplayer v1; factory assets are assumed available by catalogue ID/version;
+- v1 background audio is disabled; background pauses and invalidates Transport, foreground never catches up or auto-plays;
+- v1 exports one stereo master while internal routing preserves a future stems seam;
+- Pixel 5 is the Android performance floor; stable 60 FPS is required and 90 FPS is optional;
+- InteractionRuntime supports ten active contacts using lightweight geometry outside React rendering and renderer picking.
+
+Do not resolve the remaining open rows through incidental local implementation choices. Record consequential outcomes in ADRs and update this document if the target changes.
 
 ## 28. Migration Strategy
 
@@ -1294,10 +1374,10 @@ The web prototypes remain runnable as behavior references while the native verti
 
 ### Stage 2 — Prove the native platform envelope
 
-- Create the Expo Router mobile shell and native development builds.
-- Spike AudioRuntime and OfflineRenderService capability on iOS/Android.
-- Integrate lifecycle logging and a minimal Gesture Handler input surface.
-- Benchmark Filament with the representative 4x5 scene rather than a single spinning model.
+- Create the Expo Router mobile shell and native development builds with explicit composition, replaceable VisualRuntime, distinct InteractionRuntime, and one LifecycleCoordinator.
+- After N04, spike AudioRuntime and stereo-master OfflineRenderService capability on iOS/Android as the separate N05 gate.
+- Add the production interaction adapter and ten-contact lightweight geometry in N08, not as fake N04 gesture infrastructure.
+- Benchmark Filament in N09 with the worst-case 20 x 1x1 and representative mixed-footprint scenes in FIELD and FOCUS, rather than a single spinning model.
 
 **Exit:** hard native audio/renderer blockers have evidence and ADRs; signed/installed dev builds run on target tiers.
 
@@ -1321,7 +1401,7 @@ The web prototypes remain runnable as behavior references while the native verti
 
 - Finalize protocol schemas, identity/capabilities, lightweight service, session sequence/snapshot/reconnect, clock sync, and remote interaction policy.
 - Add companion web creation/QR/join and the selected extended controls.
-- Test two phones plus companion under jitter/reconnect and custom-sample availability policy.
+- Test two phones plus companion under jitter/reconnect and explicit local-only/missing custom-sample behavior.
 
 **Exit:** the October acceptance jam has stable local monitoring, timed remote playback, durable edits, presence, reconnect, and a usable QR companion.
 
@@ -1363,7 +1443,7 @@ The web prototypes remain runnable as behavior references while the native verti
 - No DAW-grade arrangement timeline, multitrack audio editor, clip warping, comping, arbitrary automation curves, or full performance recording system.
 - No audio streaming between participants for ordinary multiplayer synchronization. Clients synthesize/play local assets from commands.
 - No peer-to-peer mesh merely to avoid choosing a small session service.
-- No custom-sample upload backend unless October scope says peers must receive those samples.
+- No custom-sample upload backend in multiplayer v1.
 - No generic cross-platform renderer abstraction that hides every Filament/browser difference. Share data contracts; keep two direct, comprehensible implementations.
 - No per-instrument renderer, canvas, frame loop, AudioContext, session connection, or database.
 - No full VFX/physics engine. Use bounded reaction profiles, pooling, baked animation, morphs, transforms, and material animation.
@@ -1397,7 +1477,7 @@ The web prototypes remain runnable as behavior references while the native verti
 | ID | Blocker | Severity | Retirement evidence |
 | --- | --- | --- | --- |
 | NM-01 | No workspace/TypeScript/shared package boundary | Critical | portable core/protocol tests run in CI without platform imports |
-| NM-02 | No native mobile app/dev build | Critical | installed iOS/Android development builds with stable identifiers |
+| NM-02 | Native shell code exists but no physical mobile development build is validated | Critical | installed iOS/Android development builds with stable identifiers |
 | NM-03 | Native audio/offline stack unproven | Critical | Section 12 spike matrix and ADR complete on target devices |
 | NM-04 | No authoritative portable Transport | Critical | live + loop test under stalls, generation and late policy verified |
 | NM-05 | No versioned target Project schema/command store | Critical | round-trip/migration/command fixtures and placement-driven scene |
@@ -1407,7 +1487,7 @@ The web prototypes remain runnable as behavior references while the native verti
 | NM-09 | No production export service | High | representative Project parity and file share on both platforms |
 | NM-10 | No session protocol/service/clock implementation | Critical for October | multi-device timing, sequencing, reconnect, dedupe metrics |
 | NM-11 | No companion web/pairing flow | Critical for October | expiring QR join and negotiated device role |
-| NM-12 | Minimum device/OS and custom-sample multiplayer scope undecided | Critical planning risk | product decisions recorded and task acceptance updated |
+| NM-12 | Minimum supported OS versions remain undecided | High planning risk | Pixel 5 performance floor is fixed; record supported iOS/Android versions before release-matrix work |
 | NM-13 | No release/privacy/migration pipeline | High | signed preview/release builds and upgrade fixtures in CI |
 | NM-14 | Production 3D/audio assets and budgets not calibrated together | High | representative asset vertical slice passes ten-minute device run |
 
@@ -1422,7 +1502,7 @@ Dates are planning ranges, not permission to move October dependencies into Dece
 - Protect current behavior and establish portable workspace/core contracts.
 - Produce native development builds and resolve the audio/renderer feasibility risks.
 - Run one live-plus-loop native vertical slice driven by Project, Instrument Registry, Transport, and normalized interaction.
-- Choose the session service/authority, October companion slice, minimum device tiers, background-audio policy, and custom-sample multiplayer scope.
+- Choose the session service/authority, October companion slice, and minimum supported OS versions. Architecture v2 already fixes the Pixel 5 performance floor, background-audio policy, and local-only custom-sample scope.
 
 **Architecture dependencies**
 
@@ -1434,7 +1514,7 @@ Dates are planning ranges, not permission to move October dependencies into Dece
 
 - Portable baseline tests and documented legacy classifications.
 - Workspace with `apps/mobile`, `apps/companion-web` placeholder only if needed, and portable packages.
-- Expo Router shell installed as native development builds.
+- Expo Router shell with application composition root, distinct InteractionRuntime/VisualRuntime ports, centralized lifecycle policy, and native development-build path.
 - Native audio/offline and Filament benchmark ADRs with device data.
 - Project schema, command store, Instrument Registry types, musical-time utilities, and Transport.
 - At least one drum and one sustained instrument playable live over a loop in the 4x5 field skeleton.
@@ -1468,13 +1548,13 @@ Dates are planning ranges, not permission to move October dependencies into Dece
 **Architecture dependencies**
 
 - September native audio, Transport, Project/Registry, field, renderer, persistence/asset, and session decisions.
-- A running session service and, if custom samples are shared, object storage/upload path.
+- A running session service; no custom-sample object storage/upload path is part of multiplayer v1.
 - Approved representative production assets and supported device matrix.
 
 **Deliverables**
 
 - Permission -> record -> durable asset -> trim/preparation -> sample binding -> relaunch/play flow on iOS/Android.
-- AudioAssetStore/Runtime, decoded cache, missing-asset behavior, temp-file recovery, and storage diagnostics.
+- AudioAssetStore/Runtime, decoded cache, explicit local-only/missing behavior, temp-file recovery, and storage diagnostics.
 - Session identity, participant/actor/device/capability model, session sequencing, clock sync, presence, reconnect, dedupe, and high-rate coalescing.
 - Two-phone multiplayer test plus companion web session creation/QR/join and selected mixer/transport/pattern overview role.
 - 4x5 scene with approximately 20 positions, 6-8 representative unique models, reactions, haptics, and quality tiers.
@@ -1513,10 +1593,10 @@ Dates are planning ranges, not permission to move October dependencies into Dece
 **Deliverables**
 
 - Target first-party drum/synth/bass/pad/sample set with typed parameters, polyphony/choke, reactions, assets, disposal, and offline support.
-- Step/flexible Pattern and Loop editing sufficient for background loops of different lengths and live play.
+- Step/flexible finite Phrase/Pattern and Loop editing sufficient for indefinite Zen repetition and live play, plus the smallest finite Track arrangement needed to compose phrases into a whole track.
 - Per-channel gain/pan/mute/solo, shared sends, master path, and supported first-party effects.
 - InstrumentPreset plus selected KitPreset/ScenePreset/ProjectTemplate product surfaces.
-- OfflineRenderService UI with preflight, progress/cancel, tails, file encoding, and platform share/save.
+- Stereo-master OfflineRenderService UI with preflight, progress/cancel, tails, file encoding, and platform share/save; internal routing retains a future stems seam without v1 stems UI.
 - Multiplayer conflict/reconnect/timing improvements and finalized companion slice.
 - Project management/import/export/backup behavior selected for public release.
 
@@ -1671,7 +1751,7 @@ N02.
 
 **Task**
 
-Create `apps/mobile` with Expo Router, TypeScript, environment separation, lifecycle logging, and installable iOS/Android development builds.
+Create `apps/mobile` with Expo Router, TypeScript, environment separation, centralized lifecycle observation, clean composition/mount boundaries, and installable iOS/Android development builds.
 
 **Why**
 
@@ -1682,6 +1762,7 @@ Audio, gesture, storage, and Filament decisions cannot be validated inside Expo 
 - Minimal route/app shell and composition root.
 - Stable development identifiers, native build configuration, safe-area/error boundary, and app-state observation.
 - Consume one read-only portable Project fixture to prove dependency direction.
+- Reserve a replaceable application-level VisualRuntime port and a distinct InteractionRuntime port; do not add Filament or production gestures.
 - Document local/EAS or equivalent build/run path.
 
 **Out of scope**
@@ -1692,12 +1773,15 @@ Final UI, production audio, 3D field, microphone, database, companion, or store 
 
 - Development builds install and launch on at least one physical iPhone and Android.
 - App foreground/background events are observable without runtime ownership leaks.
+- One composition root owns placeholder runtimes and the single LifecycleCoordinator; route modules own none of them.
+- Background intent is cancel/pause/release/flush and foreground intent remains paused until explicit user Play.
+- VisualRuntime and InteractionRuntime boundaries remain distinct, with no renderer-specific object in portable packages.
 - No core package imports mobile APIs.
 - Expo Go is not listed as the acceptance environment for native modules.
 
 **Dependencies**
 
-N02; may proceed in parallel with N03 after the workspace boundary exists.
+N02 and N03.
 
 ### N05 — Prove native AudioRuntime and offline-render feasibility
 
@@ -1712,8 +1796,12 @@ This is the highest-risk stack decision. Broad audio porting before it would amp
 **Scope**
 
 - Evaluate React Native Audio API first in native development builds.
-- Run the Section 12.5 device matrix and capture p50/p95/p99 where possible.
+- Construct one shared AudioRuntime/output graph for every instrument on the device.
+- Run the Section 12.5 device matrix and capture application-added p50/p95/p99 under injected JS/UI/render load; document physical acoustic methodology separately.
+- Treat speaker and suitable wired output as primary latency routes and report Bluetooth separately as explicitly high latency.
+- Prove background cancels/releases/pauses and foreground remains paused without catch-up or automatic playback.
 - Prove the shape of realtime/offline program parity, even with only two simple voices.
+- Produce one deterministic stereo-master offline render while retaining a future stems seam.
 - Produce an ADR accepting the stack or naming the smallest evidence-backed alternative.
 
 **Out of scope**
@@ -1725,8 +1813,9 @@ Final instrument sound design, production sampler UI, full mixer, all effects, o
 - Scheduled loop remains stable under injected JS/UI work and has measurable lateness behavior.
 - One-shot plus two independent sustained controls play while scheduled audio runs.
 - Interruption/route/background results are documented on both platforms.
+- No tested local interaction path waits for React render; tail spikes and jitter are reported, not hidden by averages.
 - Sample decode and microphone file capture are proven at spike level.
-- Offline render path is demonstrated or a concrete alternative with cost/risks is accepted in an ADR.
+- A stereo-master offline render path is demonstrated or a concrete alternative with cost/risks is accepted in an ADR.
 
 **Dependencies**
 
@@ -1747,6 +1836,8 @@ Live-over-loops, pattern editing, export, session starts, and remote timing all 
 - BPM, ticks/bar/beat, swing, loop range, generation, play/pause/resume/stop, look-ahead iteration, and diagnostics.
 - Bounded late behavior and cancellation/stale generation handling.
 - Expand Pattern and MusicalLoop sources into scheduled events.
+- Support indefinite Zen operation by incremental look-ahead without materializing infinite event history or accumulating runtime objects.
+- On background invalidate future schedule generation; on foreground remain paused with no missed-event catch-up.
 - Test live immediate input while Transport runs and simulated session/local clock conversion seam.
 
 **Out of scope**
@@ -1757,6 +1848,7 @@ Sequencer UI, network clock implementation, DAW timeline, or sample time stretch
 
 - JavaScript timers only wake scheduling; every scheduled event carries exact native audio time.
 - 50/150/500 ms injected stalls never create an unbounded catch-up burst.
+- A long-running indefinite Zen fixture demonstrates bounded scheduler/event/voice state.
 - Different loop lengths, swing, live input, edit snapshots, pause/resume, and generation tests pass.
 - UI position can derive from snapshots without driving Transport.
 
@@ -1808,8 +1900,9 @@ The primary product interaction and 20-position layout need proof before UI pane
 
 **Scope**
 
-- Resolve logical cells/footprints/art-directed offsets to screen/scene positions.
+- Resolve complete 20-cell layouts with 1x1, 2x1, 3x1, 2x2, and other validated rectangular footprints to screen/scene positions.
 - Support hit, notes, vertical continuous, XY, long press/edit, multitouch, and cancellation through strategies.
+- Use InteractionRuntime lightweight proxies/regions distinct from render meshes; renderer picking is not the performance trigger authority.
 - Direct local audio fan-out, independent visual placeholder reactions, haptics adapter, and controlled durable commits.
 - Accessibility labels/alternative controls and minimum-screen test fixtures.
 
@@ -1819,9 +1912,9 @@ Final Filament models, full sequencer editor, remote networking, or persistence 
 
 **Acceptance criteria**
 
-- Approximately 20 placements fit the minimum supported phone without renderer-owned position truth.
-- Multiple contacts/held notes remain independent and cancel on lifecycle/removal.
-- Audio path does not wait on React render, persistence, or network.
+- Both 20 x 1x1 and representative mixed-footprint layouts occupy the minimum phone field without renderer-owned position truth.
+- At least ten active contacts have independent start/update/end/cancel ownership and cancel on lifecycle/removal.
+- Audio path does not wait on React render, renderer picking, persistence, or network.
 - Pressure absence has tested velocity/control fallbacks.
 
 **Dependencies**
@@ -1841,8 +1934,9 @@ A one-model demo cannot validate twenty detailed animated objects under simultan
 **Scope**
 
 - One scene-level VisualRuntime and VisualAssetRuntime prototype.
-- 20 positions, 6-8 representative models, PBR materials, animations, glow/effects/particles as planned, picking proxies, quality tiers, loading/cache/disposal.
-- Recent iPhone, older/mid-tier iPhone, mid-tier Android; cold/warm/ten-minute/swap/background tests.
+- Worst-case 20 x 1x1 and representative mixed-footprint scenes, 6-8 representative models, PBR materials, animations, glow/effects/particles as planned, quality tiers, loading/cache/disposal.
+- `FIELD` and selected-instrument `FOCUS` states, including intentional hero/background quality hierarchy.
+- Recent iPhone, older/mid-tier iPhone, and Pixel 5; cold/warm/ten-minute/swap/background tests.
 - Reproducible metrics and ADR.
 
 **Out of scope**
@@ -1852,6 +1946,7 @@ Final asset catalogue, generic renderer API across mobile/web, advanced physics,
 **Acceptance criteria**
 
 - p50/p95/p99 frame/input metrics, memory/resource counts, load time, thermal and audio-interaction impact are recorded.
+- Pixel 5 sustains the required 60 FPS baseline for the accepted representative/worst-case tiers; 90 FPS is reported only as an optional enhancement.
 - Scene owns one renderer/frame lifecycle; 100 swaps show no monotonic resource leak.
 - Quality tier preserves musical input/audio while reducing decoration.
 - Filament is accepted or an evidence-backed alternative is documented before full art production.
@@ -1904,10 +1999,11 @@ Sampling is a confirmed October feature and exercises audio session, assets, Pro
 
 **Scope**
 
-- Full Section 13 local flow on iOS/Android.
+- Full Section 13 local flow on iOS/Android; user recordings/imports remain local-only in multiplayer v1.
 - Maximum duration/free-space/error handling, temp recovery, nondestructive trim/fades.
 - One sample-backed definition with polyphony/choke and decoded-cache behavior.
-- Explicit local-only/missing/available state for SessionRuntime according to product decision.
+- Explicit local-only/missing/available state for SessionRuntime without upload or transfer.
+- Background/interruption finalizes a recoverable draft when safe or removes invalid temp data, consistent with the v1 paused lifecycle.
 
 **Out of scope**
 
@@ -1922,7 +2018,7 @@ DAW waveform editor, destructive mastering suite, stem separation, sample market
 
 **Dependencies**
 
-N05, N06, N07, N08, N10, and custom-sample multiplayer decision.
+N05, N06, N07, N08, and N10.
 
 ### N12 — Productize OfflineRenderService
 
@@ -1937,17 +2033,19 @@ Export is confirmed and must expose parity gaps before the instrument library ex
 **Scope**
 
 - Render request/range/preflight/result contracts.
+- One stereo master is the v1 product output; keep channel/bus addressing sufficient for future stems without implementing stems UI.
 - Same Transport Pattern/Loop expansion and program versions as realtime.
 - Missing assets, random seed, tails, output file staging, cancellation, and memory tests.
 - Golden/feature-level parity tests for drum, sustained synth, sample, mixer, and effects.
 
 **Out of scope**
 
-Multitrack stems unless separately required, video export, cloud rendering, or arbitrary codecs unsupported by product scope.
+Multitrack stems, video export, cloud rendering, or arbitrary codecs unsupported by product scope.
 
 **Acceptance criteria**
 
-- Representative Project exports on both platforms and includes all audible state.
+- Representative Project exports one stereo master on both platforms and includes all audible state.
+- The implementation does not flatten internal routing in a way that blocks a later per-channel/bus stems mode.
 - Unsupported/missing cases fail before rendering with actionable reasons.
 - Cancel/crash leaves no referenced corrupt output.
 - New audio-program checklist requires offline support.
@@ -2003,19 +2101,20 @@ Protocol simulations must become a real two-phone jam under realistic network co
 - Authenticated/scoped join, participant/actor/device records, capabilities, leader behavior.
 - Local-first performance fan-out, remote schedule mapping, durable ack/retry/dedupe, snapshot/tail recovery.
 - Presence expiry, held-note timeout/cancel, reconnect/backoff/clock resync.
-- Custom-sample availability and transfer only to the explicitly chosen October scope.
+- Explicit custom-sample local-only/missing availability; no microphone-sample upload/download or object storage in v1.
 
 **Out of scope**
 
-Internet-scale operations, peer audio, voice chat, complex permissions, public accounts/matchmaking, or CRDT.
+Internet-scale operations, peer audio, custom-sample transfer, voice chat, complex permissions, public accounts/matchmaking, or CRDT.
 
 **Acceptance criteria**
 
 - Two physical phones join, play simultaneous instruments, and preserve local low latency.
+- Local audio never waits for a network acknowledgement, including when the bound user asset is unavailable to peers.
 - Durable edits converge in server sequence and survive reconnect without duplicate application.
 - Transport start/tempo has one authority/generation and reconnecting device resumes coherently.
 - Induced jitter/duplication/loss produces bounded measured behavior; stale ephemeral events do not replay.
-- Missing custom sample follows the decided explicit UX.
+- Missing custom samples expose the decided local-only/missing UX and never trigger implicit transfer.
 
 **Dependencies**
 
@@ -2066,6 +2165,8 @@ November instrument editing and simultaneous performance require consistent pers
 **Scope**
 
 - Gain/pan/mute/solo, sends, selected effect programs, oscillator/wave/filter/cutoff/resonance/ADSR/pitch/drive parameters.
+- Compact FIELD phrase/pattern triggers and expanded FOCUS full-keyboard/knob/slider surfaces reuse the same synth AudioProgram and parameter semantics wherever possible.
+- Polyphonic chords and independent multitouch are first-class; polyphony/choke policy belongs to the definition/program, not React UI.
 - Smoothing, bounds, presets, durable command rate, remote behavior, offline parity.
 - Tests for solo resolution and graph rebuild/resource disposal.
 
@@ -2078,6 +2179,7 @@ Modular routing graph editor, arbitrary user DSP, public plugins, unlimited buse
 - Values reproduce after relaunch and in export.
 - Continuous interaction remains ephemeral while chosen final values persist/coalesce over network.
 - Several instruments/effects meet voice/CPU/latency budgets.
+- Compact and expanded synth surfaces produce equivalent program/parameter meaning without constructing two unrelated synth engines.
 - Adding a synth parameter does not add central UI/audio/export/network switch branches.
 
 **Dependencies**
@@ -2088,7 +2190,7 @@ N07, N10, N12, N14 as needed, and stable audio program APIs.
 
 **Task**
 
-Build the Winter creation UI for flexible Patterns/Loops plus selected Instrument/Kit/Scene/ProjectTemplate presets.
+Build the Winter creation UI for indefinite Zen phrase/loop performance, a lightweight finite Track arrangement, and selected Instrument/Kit/Scene/ProjectTemplate presets.
 
 **Why**
 
@@ -2097,18 +2199,20 @@ Pocket Jam requires both live play and sequenced creation without collapsing int
 **Scope**
 
 - Step-grid projection with explicit resolution/length, different loop lengths, enable/mute/solo integration, live editing.
+- Finite Phrase references and the smallest Track/Arrangement model needed to compute a whole-track duration from arranged content.
 - Audio-loop support only to the frozen Winter requirement and without implied time stretching.
 - Explicit preset application commands and version compatibility.
 - Companion editing integration if included in frozen scope.
 
 **Out of scope**
 
-Song arranger, clip warping, full piano-roll workstation, performance capture, or one ambiguous preset object.
+DAW-grade song arranger, clip warping, comping, arbitrary automation, full piano-roll workstation, performance capture, or one ambiguous preset object.
 
 **Acceptance criteria**
 
 - Live one-shots/sustained controls remain immediate while several loops run.
 - Non-16-step and different-length loops play/edit/export/reconnect deterministically.
+- Zen runs indefinitely without a fixed Project duration; a finite Track derives duration from its arranged Phrase references.
 - Applying each shipped preset kind changes only its documented scope.
 - Pattern edits do not restart Transport or produce stale/catch-up notes.
 
@@ -2130,6 +2234,7 @@ Feature breadth is safe only after registries, assets, export, session, and benc
 
 - Add definitions/programs/assets/reactions through established registries.
 - Tune quality tiers, preloading, memory, thermal, haptics, accessibility, and fallback states.
+- Re-run the required Pixel 5 floor in warm 10-minute FIELD/FOCUS sessions with representative audio and ten-contact interaction load.
 - Run clean install/upgrade, permission, interruption, route, low-space, missing asset, network, QR, export, and signed release matrices.
 - Produce store-ready native configuration and release candidates.
 
@@ -2152,21 +2257,21 @@ N09-N17 and frozen feature scope.
 
 | Feature | Subsystem | Data model | Runtime owner | Persistence needs | Network implications | Implementation phase |
 | --- | --- | --- | --- | --- | --- | --- |
-| 20-cell / 4x5 minimum field | Scene, Interaction, Visual | placements, footprints, offsets, instance IDs | Project Store + VisualRuntime | Project row | durable add/move/remove if session active | September skeleton; October production slice |
+| 20-cell / 4x5 minimum field | Scene, Interaction, Visual | placements, footprints, offsets, instance IDs | Project Store + InteractionRuntime + VisualRuntime | Project row | durable add/move/remove if session active | September skeleton; October production slice |
 | Native iOS/Android | mobile shell/platform | app config + schema versions | Expo/native composition + LifecycleCoordinator | native DB/files | session adapter | September foundation; December release |
 | Precise musical Transport | Transport | TransportConfig, Pattern/Loop ticks | Transport + native AudioRuntime | Project config | Transport generation/session time | September |
-| Live play over loops | Interaction, Transport, Audio | PerformanceInteraction + loop sources | Input adapter + AudioRuntime | final parameters only | ephemeral timestamped events | September vertical slice |
+| Live play over loops | Interaction, Transport, Audio | PerformanceInteraction + loop sources | InteractionRuntime + AudioRuntime | final parameters only | ephemeral timestamped events | September vertical slice |
 | Sequencer/patterns | core music/commands | Pattern lanes/events/resolution | Project Store + Transport | Project | durable edits | September model; November UI |
 | Detailed synth controls | registry/audio/mixer | parameter schema + instance values | Interaction strategy + AudioRuntime | Project/presets | durable final values + coalesced performance | November |
-| Microphone sampling | Recording/AudioAsset | AudioAsset metadata + asset binding | RecordingService + AudioAssetStore/Runtime | DB metadata + filesystem binary | availability/upload decision | October |
+| Microphone sampling | Recording/AudioAsset | AudioAsset metadata + asset binding | RecordingService + AudioAssetStore/Runtime | DB metadata + filesystem binary | local-only/missing availability in multiplayer v1 | October |
 | Sampled instruments / sampler | registry/interaction/audio | SampleInstrument binding + trim metadata | AudioRuntime + sampler screen | Project + AudioAsset | events plus asset availability | October/November |
-| Audio export | OfflineRenderService | Project revision + render request | OfflineRenderService | output temp/final file | local by default; optional share outside session | spike September; product November |
-| 3D animated instruments | Visual/VisualAsset | visual program IDs + Project placement | one Filament VisualRuntime | bundled asset manifests/cache metadata if needed | normalized reactions only | October/November |
+| Audio export | OfflineRenderService | Project revision + finite render request | OfflineRenderService | stereo-master output temp/final file | local by default; optional share outside session | spike September; product November; stems later |
+| 3D animated instruments | Visual/VisualAsset | visual program IDs + Project placement | one replaceable VisualRuntime; Filament preferred | bundled asset manifests/cache metadata if needed | normalized reactions only | October/November |
 | Visual effects | reaction profiles | visual program/profile IDs | VisualRuntime bounded pools | normally catalogue only | derive from remote events locally | October/November |
 | Haptics | interaction consumer | capability/optional preference | HapticRuntime | optional preference | never transmitted as haptic commands | October |
 | Multiplayer October test | protocol/session | Project commands + session runtime models | SessionRuntime + service | session snapshot/tail service-side | core feature | October |
 | Session clock | protocol/Transport seam | timestamp/generation wire fields | ClockSync + Transport adapter | diagnostics only | offset/drift/jitter exchange | September/October |
-| Custom samples in multiplayer | asset availability | asset ID/hash/state | AudioAssetStore + SessionRuntime | local file; object storage if shared | explicit upload/download or missing fallback | decision September; October if shared |
+| Custom samples in multiplayer | asset availability | stable asset ID + local-only/missing state | AudioAssetStore + SessionRuntime | local file only in v1 | no upload/download; explicit missing fallback | resolved local-only for v1 |
 | QR desktop companion | pairing/protocol/web | Device role/capabilities; token outside Project | pairing service + companion SessionRuntime | secure token only as necessary | bootstrap then normal session protocol | October |
 | Project persistence | repository/core | versioned Project/revision | ProjectRepository | SQLite/equivalent | snapshots/durable commands in session | September/October |
 | Presets | preset/core/registry | explicit four preset kinds | Project command layer | bundled/user records as scoped | durable application results | November |
@@ -2181,32 +2286,45 @@ This checklist must be revisited at the end of every roadmap phase. A feature ma
 2. JavaScript timers may wake look-ahead work but must never be authoritative note clocks.
 3. Native audio time is the local scheduling authority; session time is explicitly converted to it.
 4. Live local audio input must not wait for UI rendering, persistence, export work, or network acknowledgement.
-5. Project state must remain versioned, validated, deterministic, and JSON-serializable.
-6. Runtime audio, renderer, native file, database, network, gesture, and UI objects must never enter Project.
-7. `InstrumentDefinition` and `InstrumentInstance` must remain distinct.
-8. Project Scene placement is authoritative; meshes and hit proxies are views.
-9. One mobile VisualRuntime owns one scene, renderer, camera, frame lifecycle, and recovery policy.
-10. Every runtime resource has an explicit owner, cache/ref policy where shared, and disposal path.
-11. New instruments register audio, visual, and interaction programs rather than growing cross-system central switch statements.
-12. The registry is first-party infrastructure, not a public plugin SDK or modular DSP platform.
-13. High-rate gesture updates remain ephemeral, bounded, coalesced by consumer, and are not autosaved per event.
-14. Start/stop/cancel boundaries remain explicit and idempotent across multitouch, lifecycle, and network paths.
-15. User microphone recordings are stable AudioAssets in application storage, never inline Project blobs or decoded-buffer state.
-16. Audio asset metadata, binary files, Project references, and decoded runtime buffers remain separate.
-17. localStorage is legacy-web storage, not the native production persistence design.
-18. Network messages use stable IDs, validated schemas, command/event IDs, and musical/session time; never DOM/native object references.
-19. Durable Project commands and ephemeral performance events use different ordering, retry, persistence, and coalescing policies.
-20. The desktop companion shares portable domain/protocol logic, not mobile renderer/audio/UI assumptions.
-21. QR is short-lived session discovery/pairing, not the session protocol or device-role implementation.
-22. Every normal realtime audio program must have a tested export strategy; unsupported export requires explicit product justification.
-23. Audio effects, mixer state, samples, patterns, and parameters included in realtime Projects must be representable in offline render.
-24. App lifecycle interruption, route change, background, recording cleanup, renderer pause/recovery, persistence flush, and reconnect are explicit runtime contracts.
-25. Mobile performance is validated in release-like builds on physical devices using p95/p99 and ten-minute thermal behavior.
-26. Renderer budgets are calibrated with representative assets/audio/touch; triangle or draw-call counts are starting hypotheses, not laws.
-27. Quality adaptation degrades decorative rendering before musical timing, input stability, or Project correctness.
-28. Visual worlds/collections/styles are classification metadata and do not restrict mixing instruments unless a future product rule is explicit.
-29. Large frameworks, native subsystems, backends, and asset pipelines require a specific Winter feature or measured blocker.
-30. Refactors preserve proven audible and interaction behavior unless the task explicitly changes the product.
-31. Do not migrate Video Remix into the native Winter architecture.
-32. Do not build CRDTs, a DAW timeline, modular synthesis graph, third-party plugins, peer audio streaming, or speculative physics for Winter without a new approved requirement.
-33. Keep October microphone sampling, multiplayer testing, QR companion, and production 3D slice visible in every September dependency decision.
+5. React rendering is not on the critical local touch-to-audio path.
+6. Project state must remain versioned, validated, deterministic, and JSON-serializable.
+7. Runtime audio, renderer, native file, database, network, gesture, and UI objects must never enter Project.
+8. `InstrumentDefinition` and `InstrumentInstance` must remain distinct.
+9. Project Scene placement is authoritative; render meshes and lightweight interaction geometry are separate runtime views.
+10. A complex render mesh is never authoritative realtime interaction geometry; renderer picking is restricted to noncritical flows.
+11. VisualRuntime remains replaceable; Filament-specific objects never cross its application boundary.
+12. One mobile VisualRuntime owns one scene, renderer, camera, frame lifecycle, and recovery policy.
+13. One device has one AudioRuntime and output graph; instruments do not create independent engines/contexts.
+14. Every runtime resource has an explicit owner, cache/ref policy where shared, and disposal path.
+15. New instruments register audio, visual, and interaction programs rather than growing cross-system central switch statements.
+16. The registry is first-party infrastructure, not a public plugin SDK or modular DSP platform.
+17. High-rate gesture updates remain ephemeral, bounded, coalesced by consumer, and are not routed through React state or autosaved per event.
+18. Start/update/stop/cancel ownership remains independent and idempotent for at least ten active contacts across lifecycle and network paths.
+19. Polyphony/choke policy belongs to instrument/audio programs, not React UI or a one-note global cap.
+20. Zen Mode has no fixed Project duration; indefinite playback uses incremental look-ahead and never materializes unbounded event history.
+21. A finite Track derives duration from arranged finite Phrase content; it is not a global Project duration or a DAW timeline.
+22. Runtime presentation (`FIELD`, `FOCUS`, `TRANSITION`, `BACKGROUND`) does not silently enter durable Project state.
+23. User microphone recordings are stable AudioAssets in application storage, never inline Project blobs or decoded-buffer state.
+24. Audio asset metadata, binary files, Project references, and decoded runtime buffers remain separate.
+25. Custom microphone/imported assets remain local-only in multiplayer v1; absence on a peer is explicit and never causes silent upload.
+26. localStorage is legacy-web storage, not the native production persistence design.
+27. Network messages use stable IDs, validated schemas, command/event IDs, and musical/session time; never DOM/native object references.
+28. Durable Project commands and ephemeral performance events use different ordering, retry, persistence, and coalescing policies.
+29. The desktop companion shares portable domain/protocol logic, not mobile renderer/audio/UI assumptions.
+30. QR is short-lived session discovery/pairing, not the session protocol or device-role implementation.
+31. Every normal realtime audio program must have a tested export strategy; unsupported export requires explicit product justification.
+32. Audio effects, mixer state, samples, patterns, and parameters included in realtime Projects must be representable in offline render.
+33. Export v1 produces one stereo master; internal channel/bus structure remains addressable for possible future stems.
+34. Background audio is disabled in v1: background cancels, releases, invalidates generation, and pauses; foreground remains paused with no catch-up or auto-play.
+35. App lifecycle interruption, route change, recording cleanup, renderer pause/recovery, persistence flush, and reconnect are explicit runtime contracts.
+36. Speaker and suitable wired output are realtime latency acceptance routes; Bluetooth is an explicit high-latency mode measured separately.
+37. Pixel 5 defines the current Android performance floor; stable 60 FPS is required and 90 FPS is optional.
+38. Mobile performance is validated in release-like builds on physical devices using p50/p95/p99 and ten-minute thermal behavior.
+39. Renderer budgets are calibrated in worst-case 20 x 1x1 and representative mixed-footprint FIELD/FOCUS scenes under audio and ten-contact load.
+40. Quality adaptation degrades decorative rendering before musical timing, input stability, or Project correctness.
+41. Visual worlds/collections/styles are classification metadata and do not restrict mixing instruments unless a future product rule is explicit.
+42. Large frameworks, native subsystems, backends, and asset pipelines require a specific Winter feature or measured blocker.
+43. Refactors preserve proven audible and interaction behavior unless the task explicitly changes the product.
+44. Do not migrate Video Remix into the native Winter architecture.
+45. Do not build CRDTs, a DAW timeline, modular synthesis graph, third-party plugins, peer audio streaming, or speculative physics for Winter without a new approved requirement.
+46. Keep October microphone sampling, multiplayer testing, QR companion, and production 3D slice visible in every September dependency decision.
